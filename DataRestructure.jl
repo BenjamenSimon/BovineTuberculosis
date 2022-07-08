@@ -198,7 +198,7 @@ end
 area_of_parish_all = calc_area_of_parish_all()
 
 
-init_parish_3D = zeros(size(area_of_parish_all, 1), 360, 22)
+init_parish_3D = zeros(size(area_of_parish_all, 1), 360, 23)
 
 parish_3D = NamedArray(init_parish_3D)
 
@@ -227,6 +227,7 @@ setnames!(parish_3D, [
   "p_env_cur",
   "county",
   "parish",
+  "first_h_of_p_uid"
 ], 3)
 
 
@@ -236,6 +237,7 @@ for parish in 1:size(area_of_parish_all, 1)
     parish_3D[parish, :, 16:17] = Array(@subset(track_df, :row_id .== first_h_of_p_ALL[parish]))[:, 28:29]
     parish_3D[parish, :, 18] .= area_of_parish_all[parish]
     parish_3D[parish, :, 19:20] = Array(@subset(pers_df, :row_id .== first_h_of_p_ALL[parish]))[:, [4,5]]
+    parish_3D[parish, :, 23] .= first_h_of_p_ALL[parish]
 end
 
 
@@ -351,9 +353,6 @@ ids_to_pos_dict
 
 
 
-
-
-
 #################
 ### MOVEMENTS ###
 #################
@@ -399,19 +398,36 @@ for pos in 1:size(uids_oi, 1)
   end
 end
 
-for t in 1:360
-  dict_of_movements[(-1, t)] = findall((record_of_movements_oi[:,1] .== t) .& (record_of_movements_oi[:,2] .== -1))
-end
-
 dict_of_movements
 
 
+dict_of_movements_out = Dict{Tuple{Int64, Int64, Int64}, Array}()
+
+for t in 1:360
+  for pos in 1:size(uids_oi, 1)
+    dict_of_movements_out[(-1, t, pos)] = findall((record_of_movements_oi[:,1] .== t) .& (record_of_movements_oi[:,2] .== -1) .& (record_of_movements_oi[:,3] .== uids_oi[pos]))
+  end
+end
+
+dict_of_movements_out
 
 
+###########
+### Update outside movements
+###########
 
+for t in 1:360
+  for pos in 1:size(uids_oi, 1)
 
+    rom = record_of_movements_oi[dict_of_movements_out[(-1, t, pos)], :]
 
+    if (size(rom, 1) > 0)
+      println("WAS: ", track_3D_oi[pos, t, 10:12], "AND NOW IS: ", sum.(eachcol(rom[:, 7:9])))
 
+      track_3D_oi[pos, t, 10:12] = sum.(eachcol(rom[:, 7:9]))
+    end
+  end
+end
 
 
 ##########################

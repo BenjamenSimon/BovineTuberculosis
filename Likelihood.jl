@@ -284,19 +284,39 @@ function movements_llh_i_t(;position, t, combi_array, movement_records, movement
 
   m_off_llh = 0.
 
-  for j in 1:size(movement_records_i_t, 1)
+  @inbounds @simd for j in 1:size(movement_records_i_t, 1)
 
     m_off_llh += moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
                                            Moves = movement_records_i_t[j, 7:9])
 
   end
 
-  m_on_out_llh = moves_MHG(States_Moves = [90000, 5000, 5000],
+  m_on_out_llh = moves_MHG(States_Moves = [10800, 600, 600],
                                   Moves = combi_array[2][position, t, [10,11,12]])
 
   # [1,2]
   return([m_off_llh, m_on_out_llh])
 end
+
+# function movements_llh_i_t(;position, t, combi_array, movement_records, movement_dict)
+#
+#   # MOVEMENT PROCESS
+#
+#   m_off_llh = 0.
+#
+#   for j in 1:size(movement_records[movement_dict[(position, t)], :], 1)
+#
+#     m_off_llh += moves_MHG(States_Moves = movement_records[movement_dict[(position, t)], :][j, 4:6],
+#                                            Moves = movement_records[movement_dict[(position, t)], :][j, 7:9])
+#
+#   end
+#
+#   m_on_out_llh = moves_MHG(States_Moves = [90000, 5000, 5000],
+#                                   Moves = combi_array[2][position, t, [10,11,12]])
+#
+#   # [1,2]
+#   return([m_off_llh, m_on_out_llh])
+# end
 
 
 function c_epidemic_llh_i_t(;position, t, combi_array)
@@ -444,7 +464,7 @@ end
 ### Update LLH Array Functions ###
 ##################################
 
-function update_llh_array_ALL(scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params)
+@views function update_llh_array_ALL(scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
 
   t_start = scope[1]
   t_end = scope[2]
@@ -455,10 +475,10 @@ function update_llh_array_ALL(scope, llh_array_cur, p_env_llh_array_cur, combi_a
 
   parishes_to_update = Int64[]
 
-  @inbounds for pos in positions
-    @inbounds for t in t_start:t_end
+  @inbounds @simd for pos in positions
+    for t in t_start:t_end
 
-      llh_array_new[pos, t, [1,2]] = movements_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records)
+      llh_array_new[pos, t, [1,2]] = movements_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
 
       llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
 
@@ -476,8 +496,8 @@ function update_llh_array_ALL(scope, llh_array_cur, p_env_llh_array_cur, combi_a
     push!(parishes_to_update, f_to_p_dict[pos][2])
   end
 
-  @inbounds for p_pos in parishes_to_update
-    @inbounds for t in t_start:t_end
+  @inbounds @simd for p_pos in parishes_to_update
+    for t in t_start:t_end
 
       p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
 
@@ -487,9 +507,7 @@ function update_llh_array_ALL(scope, llh_array_cur, p_env_llh_array_cur, combi_a
   return(llh_array_new, p_env_llh_array_new)
 end
 
-
-
-function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params)
+@views function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
 
   t_start = scope[1]
   t_end = scope[2]
@@ -500,8 +518,8 @@ function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, co
 
   parishes_to_update = Int64[]
 
-  @inbounds for pos in positions
-    @inbounds for t in t_start:t_end
+  @inbounds @simd for pos in positions
+    for t in t_start:t_end
 
       llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
 
@@ -509,11 +527,12 @@ function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, co
 
     end
 
-    push!(parishes_to_update, f_to_p_dict[combi_array[1][pos,1,2]][2])
+    # push!(parishes_to_update, f_to_p_dict[combi_array[1][pos,1,2]][2])
+    push!(parishes_to_update, f_to_p_dict[pos][2])
   end
 
-  @inbounds for p_pos in parishes_to_update
-    @inbounds for t in t_start:t_end
+  @inbounds @simd for p_pos in parishes_to_update
+    for t in t_start:t_end
 
       p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
 
@@ -523,45 +542,53 @@ function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, co
   return(llh_array_new, p_env_llh_array_new)
 end
 
+@views function update_llh_array_DETECTION(scope, llh_array_cur, combi_array, epi_params)
+
+  t_start = scope[1]
+  t_end = scope[2]
+  positions = scope[3]
+
+  llh_array_new = deepcopy(llh_array_cur)
+  p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
+
+  parishes_to_update = Int64[]
+
+  @inbounds @simd for pos in positions
+    for t in t_start:t_end
+
+      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+
+    end
+  end
+
+  return(llh_array_new, p_env_llh_array_new)
+end
+
+@views function update_llh_array_BBD(scope, llh_array_cur, combi_array, epi_params)
+
+  t_start = scope[1]
+  t_end = scope[2]
+  positions = scope[3]
+
+  llh_array_new = deepcopy(llh_array_cur)
+  p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
+
+  parishes_to_update = Int64[]
+
+  @inbounds @simd for pos in positions
+    for t in t_start:t_end
+
+      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+
+    end
+  end
+
+  return(llh_array_new)
+end
 
 ###############################
 ### Sum LLH Array Functions ###
 ###############################
-
-
-# function calc_llh_h(scope, llh_array_cur)
-#
-#   t_start = scope[1]
-#   t_end = scope[2]
-#   positions = scope[3]
-#   element_range = scope[4]
-#
-#   llh = 0
-#
-#   for pos in positions
-#     llh += sum(llh_array_cur[pos][t_start:t_end, element_range])
-#   end
-#
-#   return(llh)
-# end
-#
-# function calc_llh_h_and_p(scope, llh_array_cur, p_env_llh_array_cur)
-#
-#   llh = calc_llh_h(scope, llh_array_cur)
-#
-#   t_start = scope[1]
-#   t_end = scope[2]
-#
-#   p_env_llh = 0
-#
-#   for p_pos in 1:size(p_env_llh_array_cur, 1) #p_positions
-#     p_env_llh += sum(p_env_llh_array_cur[p_pos][t_start:t_end, :])
-#   end
-#
-#   return(llh + p_env_llh)
-# end
-
-
 
 function calc_llh_h(scope, llh_array_cur)
 
@@ -594,17 +621,3 @@ function calc_llh_h_and_p(scope, llh_array_cur, p_env_llh_array_cur)
 
   return(llh + p_env_llh)
 end
-
-
-
-
-# Specialised likelihood update functions
-# posterior functions
-
-# Benchmark llh function
-
-# move onto MCMC function
-
-# establish use of llh function and make sure correct
-
-# compare structure to Lorenzo code and update

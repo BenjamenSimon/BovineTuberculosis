@@ -33,6 +33,10 @@ end
 ### Parameter Posterior Distributions ###
 #########################################
 
+# NOTE: These functions will only calculate the appropriate posterior
+# One needs to do that for each the cur and prime on every draw
+# because we are always looking at a unique selection to save cost
+
 function Infection_params_posterior(llh_array_prime, p_env_llh_array_prime, scope, log_prior_dists, epi_params_prime)
 
   log_prior_prime = Infection_prior(log_prior_dists, epi_params_prime)
@@ -56,6 +60,20 @@ end
 ### Data Augmentation Posterior Distributions ###
 #################################################
 
-# NOTE: This function will only calculate the appropriate posterior
-# One needs to do that for each the cur and prime on every draw
-# because we are always looking at a unique selection to save cost
+function generic_posterior_dataaug(llh_array_prime, scope, epi_params_prime)
+
+  # Used for MoveSE, AddRemSE,
+
+  post_prime = calc_llh_h(scope, llh_array_prime)
+
+  return(post_prime)
+end
+
+function generic_posterior_dataaug(llh_array_prime, p_env_llh_array_prime, scope, epi_params_prime)
+
+  # Used for MoveEI, AddRemEI, AddRemDet, AddRemDeath, AddRemMoves, AddRemPenv
+
+  post_prime = calc_llh_h_and_p(scope, llh_array_prime, p_env_llh_array_prime)
+
+  return(post_prime)
+end

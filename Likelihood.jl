@@ -177,9 +177,9 @@ end
 #   llh_array[k] = Array{BigFloat, 2}(undef, 360, 14)
 # end
 
-# 1. m_off_llh, 2. m_on_out_llh, 3. c_exp_llh, 4. c_inf_llh, 5. exp_det_llh,
+# 1. m_off_llh, 2. indv_moves_off_llh, 3. c_exp_llh, 4. c_inf_llh, 5. exp_det_llh,
 # 6. inf_det_llh, 7. c_dth_llh, 8. b_exp_llh, 9. b_inf_llh, 10. b_bths_llh,
-# 11. bS_dths_llh, 12. bE_dths_llh, 13. bI_dths_llh, 14. indv_moves_off_llh
+# 11. bS_dths_llh, 12. bE_dths_llh, 13. bI_dths_llh, 14. m_on_out_llh
 
 
 # p_env_llh_array = Array{Array{BigFloat, 2}, 1}(undef,77)
@@ -241,82 +241,46 @@ end
 ### Caclulate LLH Elements Functions ###
 ########################################
 
-# function simple_movements_llh_i_t(;position, t, combi_array)
-#
-#   # MOVEMENT PROCESS
-#
-#   m_off_llh = moves_MHG(States_Moves = combi_array[1][position, t, [7,8,9]],
-#                                Moves = combi_array[2][position, t, [7,8,9]])
-#
-#   m_on_out_llh = moves_MHG(States_Moves = [90000, 5000, 5000],
-#                                   Moves = combi_array[2][position, t, [10,11,12]])
-#
-#   # [1, 2]
-#   return([m_off_llh, m_on_out_llh])
-# end
-
-
-# function individual_movements_off_llh_i_t(;position, t, movement_records)
-#
-#   # MOVEMENT PROCESS - BY MOVEMENT
-#
-#   movement_records_i_t = movement_records[findall((movement_records[:,1] .== t) .& (movement_records[:,2] .== position)), :]
-#
-#   indv_moves_off_llh = 0.
-#
-#   for j in 1:size(movement_records_i_t, 1)
-#
-#     indv_moves_off_llh += moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
-#                                            Moves = movement_records_i_t[j, 7:9])
-#
-#   end
-#
-#   # [14]
-#   return([indv_moves_off_llh])
-# end
-
-
 function movements_llh_i_t(;position, t, combi_array, movement_records, movement_dict)
 
   # MOVEMENT PROCESS
 
   movement_records_i_t = movement_records[movement_dict[(position, t)], :]
 
-  m_off_llh = 0.
+  # Probability of moving animal states off farm of all animals on farm
+  m_off_llh = moves_MHG(States_Moves = combi_array[1][position, t, [7,8,9]],
+                               Moves = combi_array[2][position, t, [7,8,9]])
+
+  # Probability of moving animal states to each farm of animals moved off
+  indv_moves_off_llh = 0.
 
   @inbounds @simd for j in 1:size(movement_records_i_t, 1)
 
-    m_off_llh += moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
+    indv_moves_off_llh += moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
                                            Moves = movement_records_i_t[j, 7:9])
 
   end
 
-  m_on_out_llh = moves_MHG(States_Moves = [10800, 600, 600],
-                                  Moves = combi_array[2][position, t, [10,11,12]])
+  # Probability of animal states moving onto the farm from outside farms of interest
+  # m_on_out_llh = moves_MHG(States_Moves = [10800, 600, 600],
+  #                                 Moves = combi_array[2][position, t, [10,11,12]])
 
   # [1,2]
-  return([m_off_llh, m_on_out_llh])
-end
+  # not returning m_on_out_llh at the moment
+  return([m_off_llh, indv_moves_off_llh])
+end # ALL MOVEMENTS
 
-# function movements_llh_i_t(;position, t, combi_array, movement_records, movement_dict)
-#
-#   # MOVEMENT PROCESS
-#
-#   m_off_llh = 0.
-#
-#   for j in 1:size(movement_records[movement_dict[(position, t)], :], 1)
-#
-#     m_off_llh += moves_MHG(States_Moves = movement_records[movement_dict[(position, t)], :][j, 4:6],
-#                                            Moves = movement_records[movement_dict[(position, t)], :][j, 7:9])
-#
-#   end
-#
-#   m_on_out_llh = moves_MHG(States_Moves = [90000, 5000, 5000],
-#                                   Moves = combi_array[2][position, t, [10,11,12]])
-#
-#   # [1,2]
-#   return([m_off_llh, m_on_out_llh])
-# end
+function movements_total_llh_i_t(;position, t, combi_array, movement_records, movement_dict)
+
+  # MOVEMENT PROCESS
+
+  # Probability of moving animal states off farm of all animals on farm
+  m_off_llh = moves_MHG(States_Moves = combi_array[1][position, t, [7,8,9]],
+                               Moves = combi_array[2][position, t, [7,8,9]])
+
+  # [1]
+  return(m_off_llh)
+end # JUST TOTAL MOVEMENTS OFF
 
 
 function c_epidemic_llh_i_t(;position, t, combi_array)
@@ -507,6 +471,49 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
+@views function update_llh_array_ALL_excindvmoves(scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
+
+  t_start = scope[1]
+  t_end = scope[2]
+  positions = scope[3]
+
+  llh_array_new = deepcopy(llh_array_cur)
+  p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
+
+  parishes_to_update = Int64[]
+
+  @inbounds @simd for pos in positions
+    for t in t_start:t_end
+
+      llh_array_new[pos, t, [1]] = movements_total_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
+
+      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
+
+      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, combi_array)
+
+      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+
+      llh_array_new[pos, t, [7]] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
+
+      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+
+    end
+
+    # push!(parishes_to_update, f_to_p_dict[combi_array[1][pos,1,2]][2])
+    push!(parishes_to_update, f_to_p_dict[pos][2])
+  end
+
+  @inbounds @simd for p_pos in parishes_to_update
+    for t in t_start:t_end
+
+      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
+
+    end
+  end
+
+  return(llh_array_new, p_env_llh_array_new)
+end
+
 @views function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
 
   t_start = scope[1]
@@ -542,14 +549,13 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_DETECTION(scope, llh_array_cur, combi_array, epi_params)
+@views function update_llh_array_DETECTION(scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
 
   t_start = scope[1]
   t_end = scope[2]
   positions = scope[3]
 
   llh_array_new = deepcopy(llh_array_cur)
-  p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
 
   parishes_to_update = Int64[]
 
@@ -561,7 +567,7 @@ end
     end
   end
 
-  return(llh_array_new, p_env_llh_array_new)
+  return(llh_array_new, p_env_llh_array)
 end
 
 @views function update_llh_array_BBD(scope, llh_array_cur, combi_array, epi_params)

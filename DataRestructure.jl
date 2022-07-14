@@ -368,6 +368,7 @@ record_of_movements_temp = deepcopy(Int64.(record_of_movements))
 for i in 1:size(record_of_movements_temp, 1)
   if ((record_of_movements_temp[i,2] in uids_oi) == false)
      record_of_movements_temp[i,2] = -1
+     record_of_movements_temp[i,[4,5,6]] = [10800, 600, 600]
   end
   if ((record_of_movements_temp[i,3] in uids_oi) == false)
      record_of_movements_temp[i,3] = -1

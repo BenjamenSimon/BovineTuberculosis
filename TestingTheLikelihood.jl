@@ -9,9 +9,10 @@ llh_array = zeros(size(combi_array[1], 1), 360, 13)
 
 # 1. m_off_llh, 2. m_on_out_llh, 3. c_exp_llh, 4. c_inf_llh, 5. exp_det_llh,
 # 6. inf_det_llh, 7. c_dth_llh, 8. b_exp_llh, 9. b_inf_llh, 10. b_bths_llh,
-# 11. bS_dths_llh, 12. bE_dths_llh, 13. bI_dths_llh, 14. indv_moves_off_llh
+# 11. bS_dths_llh, 12. bE_dths_llh, 13. bI_dths_llh
 
 p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
+
 
 ##############################
 ### Testing the likelihood ###
@@ -47,8 +48,8 @@ p_env_llh_k_t(;p_position = 1, t = 353, combi_array, epi_params = epi_params_tru
 
 scope = [1, 360, 1:size(combi_array[1], 1), 1:13]
 
-llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(scope, llh_array, p_env_llh_array, combi_array,
-                                                            record_of_movements, epi_params_true, dict_of_movements)
+llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(scope, llh_array, p_env_llh_array, combi_array, record_of_movements,
+                                                          epi_params_true, dict_of_movements, f_to_p_dict)
 
 calc_llh_h(scope, llh_array_cur)
 

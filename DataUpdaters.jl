@@ -418,33 +418,6 @@ end
 
 ### ADD/REM Detections ###
 
-function detection_permutations(cStates_postEI, cDet_cur, epi_params)
-
-  total_det_t = sum(cDet_cur)
-
-  permutations = fill(-99., Int64(factorial(total_det_t+2-1)/(factorial(total_det_t)*factorial(2-1))), 3)
-
-  iter = 1
-
-  for nE in 0:total_det_t
-
-    nI = (total_det_t - nE)
-
-    prob_Edet = logpdf(Binomial(convert(Int64, cStates_postEI[2]), prod(epi_params[[6,7]])), nE)
-    prob_Idet = logpdf(Binomial(convert(Int64, cStates_postEI[3]), epi_params[6]), nI)
-
-    permutations[iter, :] = [nE, nI, (exp(prob_Edet) + exp(prob_Idet))]
-    iter += 1
-  end
-
-  println(permutations)
-
-  chosen_perm = [permutations[wsample(1:size(permutations, 1), permutations[:, 3]), :] ; permutations[convert(Int64, (cDet_cur[1]+1)), 3]]
-
-  return(chosen_perm)
-end #to test
-
-
 function update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict)
 
   combi_array_prime = deepcopy(combi_array_cur)
@@ -527,32 +500,6 @@ end
 
 
 ### ADD/REM Deaths ###
-
-function deaths_permutations(cStates_postDet, cDeaths, epi_params)
-
-  total_deaths = sum(cDeaths)
-
-  permutations = fill(-99., Int64(factorial(total_deaths+3-1)/(factorial(total_deaths)*factorial(3-1))), 4)
-
-  iter = 1
-
-  for nS in 0:total_deaths
-    for nE in 0:(total_deaths - nS)
-
-      nI = (total_deaths - nS - nE)
-
-      perm_prob = log_pdf_mvhyper(cStates_postDet, [nS, nE, nI])
-
-      permutations[iter, :] = [nS, nE, nI, exp(perm_prob)]
-      iter += 1
-    end
-  end
-
-  chosen_perm = [permutations[wsample(1:size(permutations, 1), permutations[:, 4]), :] ; log_pdf_mvhyper(cStates_postDet, cDeaths)]
-
-  return(chosen_perm)
-end #to test
-
 
 function update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict)
 
@@ -647,197 +594,9 @@ end
 
 ### ADD/REM Movements ###
 
-function rng_mvhyper(n, k)
-  # n is a vector of size of pop for each group
-  # k is the number of trials (total number moving)
+function update_data_AddRem_Movement(combi_array_cur, scope, combi_array_prime, epi_params, differences_oi, parish_differences)
 
-  N = sum(n) # total pop size
-  m = length(n) # number of groups
-  n_otr = N - n[1] # number not in first group
-
-  x = fill(0, m) # results
-
-  x[1] = rand(Hypergeometric(n[1], n_otr, k))
-
-  for i in 2:(m-1)
-    n_otr = n_otr - n[i]
-    k = k - x[i-1]
-    x[i] = rand(Hypergeometric(n[i], n_otr, k))
-  end
-
-  x[m] = k - x[m-1]
-  return(x)
-end
-
-function generate_new_movement(combi_array_cur, position, t, epi_params, movement_record, dict_of_movements, f_to_p_dict, ids_to_pos_dict)
-
-  combi_array_prime = deepcopy(combi_array_cur)
-  movement_record_prime = deepcopy(movement_record)
-
-  ### Scope ###
-
-  lower_t = t
-  upper_t = size(combi_array_cur[1], 2) #T
-  h_positions = [position] # extended dependent on movement choice
-  h_element_range = 1:13
-
-
-  ####################
-  ### Extract Data ###
-  ####################
-
-  # :cS_Moves, :cE_Moves, :cI_Moves
-  states = combi_array_prime[1][position, t, [7,8,9]]
-  # :sus_off, :exp_off, :inf_off
-  moves_off = combi_array_prime[2][position, t, [7,8,9]]
-
-  total_moves = sum(moves_off)
-
-
-  ############################################
-  ### Extract the movement data for time t ###
-  ############################################
-
-  move_record_rows = dict_of_movements[(position, t)]
-
-  # This extracts the movement data at time t for the off farm
-  moves_data_cur = movement_record[move_record_rows, :]
-  moves_data_prime = deepcopy(moves_data_cur)
-
-  # Extract on_row_ids that recieved animals from this farm
-  on_cph_row_ids = moves_data_prime[:, 3]
-
-  # Extract number of movements to each farm
-  m_farm = moves_data_prime[:, 10]
-
-
-  ##################################
-  ### Generate new movement data ###
-  ##################################
-
-  new_move_states = rng_mvhyper(states, total_moves)
-
-    ###################################
-    ### Early return: No difference ###
-    ###################################
-
-    if all((new_move_states - moves_off) .== 0)
-      # returns changed position as an Int instead of a Vector
-      return(combi_array, movement_record, 2)
-    end
-
-  running_move_states = deepcopy(new_move_states)
-
-  # FOR each (j) of the farms that recieved animals
-  for j in 1:size(on_cph_row_ids, 1)
-
-    # IF there is more than one farm that recieved animals from farm i
-    if (size(on_cph_row_ids, 1) > 1)
-      # Extract the total movements onto this farm
-      total_moved = m_farm[j]
-      # Generate the states
-      states_on = rng_mvhyper(running_move_states, total_moved)
-    else # ELSE there is only one farm
-      states_on = running_move_states
-    end
-
-    moves_data_prime[j, 4:6] = running_move_states
-    moves_data_prime[j, 7:9] = states_on
-
-    # Update the running total of the moved states
-    # Reduce the moved states by those that just got assigned
-    running_move_states = running_move_states - states_on
-
-  end #end of for farms that recieved animals
-
-
-  ########################
-  ### Update moves off ###
-  ########################
-
-  # :sus_off, :exp_off, :inf_off
-  combi_array_prime[2][position, t, [7,8,9]] = new_move_states
-
-  movement_record_prime[move_record_rows, :] .= moves_data_prime
-
-
-  ############################################
-  ### Calculate the farm level differences ###
-  ############################################
-
-  # :Δ_S_on, :Δ_E_on, :Δ_I_on, :on_row_id, :on_position, :on_parish_pos
-  differences = fill(-99., size(on_cph_row_ids, 1), 6)
-
-  for j in 1:size(on_cph_row_ids, 1)
-
-      if on_cph_row_ids[j] > 0
-        differences[j, 1:6] = [Array(moves_data_cur[j, 7:9]) - Array(moves_data_prime[j, 7:9]) ;
-                              on_cph_row_ids[j] ;
-                              ids_to_pos_dict[on_cph_row_ids[j]] ;
-                              f_to_p_dict[ids_to_pos_dict[on_cph_row_ids[j]]][2] ]
-
-
-        h_positions = [h_positions ; differences[j, 5]]
-      end
-  end
-
-  h_positions_oi = unique(h_positions[h_positions .> 0])
-
-  differences_oi = differences[(differences[:,4] .> 0), :]
-
-  ##############################################
-  ### Calculate the parish level differences ###
-  ##############################################
-
-  affected_parishes = unique([differences_oi[:, 6]; f_to_p_dict[position][2]])
-
-  # :Δ_pS, :Δ_pE, :Δ_pI, :parish_pos
-  parish_differences = fill(0, size(affected_parishes, 1), 4)
-
-  for (idx, par) in enumerate(affected_parishes)
-
-    parish_differences[idx, 4] = par
-
-    for i in 1:size(differences_oi, 1)
-      if differences_oi[i, 5] == par
-        parish_differences[idx, 1:3] += differences_oi[i, 1:3]
-      end
-    end
-
-    if par == f_to_p_dict[position][2] #off_p_id
-      Δ_off = combi_array_prime[2][position, t, [7,8,9]] - combi_array_cur[2][position, t, [7,8,9]]
-      parish_differences[idx, 1:3] -= Δ_off
-    end
-
-  end
-
-
-  ############################################
-  ### Update the data with the differences ###
-  ############################################
-
-  combi_array_prime = update_data_after_move(combi_array_cur, h_positions, t, upper_t, combi_array_prime, epi_params, differences_oi, parish_differences)
-
-
-  ####################################
-  ### Early return: Invalid Update ###
-  ####################################
-
-  for chpos in h_positions
-    posi_check = combi_array_prime[1][h_positions, lower_t:upper_t, 4:21] .>= 0
-
-    if sum(posi_check) != prod(size(posi_check))
-      # returns changed position as a Int instead of a Vector
-      return(combi_array, movement_record, 3)
-    end
-  end
-
-  return(combi_array_prime, movement_record_prime, 1)
-                                                  #valid
-end
-
-
-function update_data_after_move(combi_array_cur, position, t, T, combi_array_prime, epi_params, differences_oi, parish_differences)
+  t, T, position, h_positions = scope[1:4]
 
   ##########################################
   ### Update the farm that moved animals ###
@@ -898,7 +657,7 @@ function update_data_after_move(combi_array_cur, position, t, T, combi_array_pri
       ### Update the probabilities
       ##############
 
-      combi_array_prime = update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, [lower_t, upper_t, pos])
+      combi_array_prime = update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, [t, T, pos])
 
   end # end of for each move
 
@@ -935,7 +694,22 @@ function update_data_after_move(combi_array_cur, position, t, T, combi_array_pri
 
   end # end of for each parish
 
-  return(combi_array_prime)
+
+  ####################################
+  ### Early return: Invalid Update ###
+  ####################################
+
+  for chpos in h_positions
+    posi_check = combi_array_prime[1][h_positions, t:T, 4:21] .>= 0
+
+    if sum(posi_check) != prod(size(posi_check))
+      # returns changed position as a Int instead of a Vector
+      return(combi_array_prime, 3)
+    end
+  end
+
+  return(combi_array_prime, 1)
+                          # valid
 end
 
 
@@ -950,7 +724,7 @@ function update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params
   lower_t = t
   upper_t = t+1
   h_positions = f_to_p_dict[ids_to_pos_dict[combi_array_prime[4][p_position, t, 23]]][4]
-  h_element_range = 1:13
+  h_element_range = [3,8]
 
   # Δs = [Δr, Δn]
   # Check sum(Δs) != 0 outside of func
@@ -973,7 +747,7 @@ function update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params
   ############
 
   # :p_env_prev
-  combi_array_prime[4][p_position, t, 19] += Δpenv
+  combi_array_prime[4][p_position, (t+1), 19] += Δpenv
   # :p_env_cur
   combi_array_prime[4][p_position, t, 20] += Δpenv
 

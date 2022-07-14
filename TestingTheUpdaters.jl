@@ -5,14 +5,14 @@ include("Likelihood.jl")
 ### Constructing the likelihood array ###
 #########################################
 
-llh_array = zeros(100, 360, 13)
+llh_array = zeros(size(combi_array[1], 1), 360, 13)
 
-p_env_llh_array = zeros(77, 360, 2)
+p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
 
-scope = [1, 360, 1:100, 1:13]
+scope = [1, 360, 1:size(combi_array[1], 1), 1:13]
 
-llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(scope, llh_array, p_env_llh_array, combi_array,
-                                                            record_of_movements, epi_params_true, dict_of_movements)
+llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(scope, llh_array, p_env_llh_array, combi_array, record_of_movements,
+                                                          epi_params_true, dict_of_movements, f_to_p_dict)
 
 ############################
 ### Testing the Updaters ###

@@ -43,16 +43,16 @@ function Infection_params_posterior(llh_array_prime, p_env_llh_array_prime, scop
 
   post_prime = calc_llh_h_and_p(scope, llh_array_prime, p_env_llh_array_prime) + log_prior_prime
 
-  return(post_prime, log_prior_prime)
+  return(post_prime)
 end
 
-function Detection_params_posterior(llh_array_prime, scope, log_prior_dists, epi_params_prime)
+function Detection_params_posterior(llh_array_prime, p_env_llh_array_prime, scope, log_prior_dists, epi_params_prime)
 
   log_prior_prime = Detection_prior(log_prior_dists, epi_params_prime)
 
   post_prime = calc_llh_h(scope, llh_array_prime) + log_prior_prime
 
-  return(post_prime, log_prior_prime)
+  return(post_prime)
 end
 
 
@@ -60,9 +60,9 @@ end
 ### Data Augmentation Posterior Distributions ###
 #################################################
 
-function generic_posterior_dataaug(llh_array_prime, scope, epi_params_prime)
+function generic_posterior_SE_dataaug(llh_array_prime, p_env_llh_array_prime, scope, epi_params_prime)
 
-  # Used for MoveSE, AddRemSE,
+  # Used for MoveSE, AddRemSE
 
   post_prime = calc_llh_h(scope, llh_array_prime)
 

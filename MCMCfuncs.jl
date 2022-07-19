@@ -10,12 +10,12 @@ function create_results_arrays(N_its, epi_params_true)
   res = fill(-99., N_its, number_of_parameters)
   # :β_c, :β_b, :γ, :F, :ϵ, :ρ, :ρ_E, :θ_bb, :θ_bd
 
-  other_res = fill(-99., N_its, 9)
-  # :is_accepted_inf, :log_α_ratio_inf, :post_inf, :post_prime_inf,
-  # :is_accepted_det, :log_α_ratio_det, :post_det, :post_prime_det,
+  other_res = fill(-99., N_its, 11)
+  # :is_accepted_inf, :log_α_ratio_inf, :post_inf, :post_prime_inf, :reason_inf
+  # :is_accepted_det, :log_α_ratio_det, :post_det, :post_prime_det, :reason_det
   # :sample
 
-  aug_res = fill(-99., N_its, 32)
+  aug_res = fill(-99., N_its, 41)
   # [is_accepted, log_α_ratio, post, post_prime] for
   # Move SE, Move EI, Add/Rem SE, Add/Rem EI
   # Add/Rem Det, Add/Rem Death, Add/Rem penv, Add/Rem Moves
@@ -23,9 +23,58 @@ function create_results_arrays(N_its, epi_params_true)
   tuning_res = fill(-99., N_its, 5)
   # :λ_inf, :λ_det, :m_inf, :m_det, :sample
 
-  update_tracker = fill(-99., N_its, 100)
+  update_tracker = fill(-99., N_its, 83)
   # move_SE_tracker, move_EI_tracker, AddRem_SE_tracker, AddRem_EI_tracker,
   # AddRem_Dets_tracker, AddRem_Deaths_tracker, AddRem_penv_tracker, AddRem_Moves_tracker
+
+  return(res, other_res, aug_res, tuning_res, update_tracker)
+end
+
+function rename_results_arrays(res, other_res, aug_res, tuning_res, update_tracker)
+
+  res = DataFrame(res, :auto)
+  rename!(res, [:β_c, :β_b, :γ, :F, :ϵ, :ρ, :ρ_E, :θ_bb, :θ_bd])
+
+  other_res = DataFrame(other_res, :auto)
+  rename!(other_res, [:is_accepted_inf, :log_α_ratio_inf, :post_inf, :post_prime_inf, :reason_inf,
+                      :is_accepted_det, :log_α_ratio_det, :post_det, :post_prime_det, :reason_det,
+                      :sample])
+
+  aug_res = DataFrame(aug_res, :auto)
+  rename!(aug_res, [:is_accepted_move_SE, :log_α_ratio_move_SE, :post_move_SE, :post_prime_move_SE, :reason_move_SE,
+                    :is_accepted_move_EI, :log_α_ratio_move_EI, :post_move_EI, :post_prime_move_EI, :reason_move_EI,
+                    :is_accepted_AddRem_SE, :log_α_ratio_AddRem_SE, :post_AddRem_SE, :post_prime_AddRem_SE, :reason_AddRem_SE,
+                    :is_accepted_AddRem_EI, :log_α_ratio_AddRem_EI, :post_AddRem_EI, :post_prime_AddRem_EI, :reason_AddRem_EI,
+                    :is_accepted_AddRem_Det, :log_α_ratio_AddRem_Det, :post_AddRem_Det, :post_prime_AddRem_Det, :reason_AddRem_Det,
+                    :is_accepted_AddRem_Death, :log_α_ratio_AddRem_Death, :post_AddRem_Death, :post_prime_AddRem_Death, :reason_AddRem_Death,
+                    :is_accepted_AddRem_penv, :log_α_ratio_AddRem_penv, :post_AddRem_penv, :post_prime_AddRem_penv, :reason_AddRem_penv,
+                    :is_accepted_AddRem_moves, :log_α_ratio_AddRem_moves, :post_AddRem_moves, :post_prime_AddRem_moves, :reason_AddRem_moves,
+                    :sample])
+
+  tuning_res = DataFrame(tuning_res, :auto)
+  rename!(tuning_res, [:λ_inf, :m_inf, :λ_det, :m_det, :sample])
+
+
+  update_tracker = DataFrame(update_tracker, :auto)
+  rename!(update_tracker, [:mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δt, :mSE_num_moved,
+                           :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δt, :mEI_num_moved,
+                           :arSE_position, :arSE_t, :arSE_is_accepted, :arSE_reason, :arSE_Δ, :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob,
+                           :arEI_position, :arEI_t, :arEI_is_accepted, :arEI_reason, :arEI_Δ, :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob,
+                           :arDet_position, :arDet_t, :arDet_is_accepted, :arDet_reason, :arDet_ΔE, :arDet_ΔI,
+                                                      :arDet_Edet_before, :arDet_Idet_before, :arDet_Edet_after, :arDet_Idet_after,
+                                                      :arDet_cE, :arDet_cI,
+                           :arDeaths_position, :arDeaths_t, :arDeaths_is_accepted, :arDeaths_reason,
+                                                      :arDeaths_ΔS, :arDeaths_ΔE, :arDeaths_ΔI,
+                                                      :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
+                                                      :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
+                                                      :arDeaths_cS, :arDeaths_cE, :arDeaths_cI,
+                           :arpenv_position, :arpenv_t, :arpenv_is_accepted, :arpenv_reason, :arpenv_Δr, :arpenv_Δn,
+                                                      :arpenv_r_pres_before, :arpenv_n_pres_before, :arpenv_r_pres_after, :arpenv_n_pres_after,
+                                                      :arpenv_p_env_prev, :arpenv_pI,
+                           :arMoves_position, :arMoves_t, :arMoves_is_accepted, :arMoves_reason,
+                                                      :arMoves_Soff_before, :arMoves_Eoff_before, :arMoves_Ioff_before,
+                                                      :arMoves_Soff_after, :arMoves_Eoff_after, :arMoves_Ioff_after,
+                                                      :arMoves_cS, :arMoves_cE, :arMoves_cI])
 
   return(res, other_res, aug_res, tuning_res, update_tracker)
 end
@@ -55,22 +104,22 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
                                           proposal_func, llh_update_func, posterior_func,
                                           params_cur, combi_array_cur,
                                           llh_array_cur, p_env_llh_array_cur,
-                                          f_to_p_dict,
+                                          f_to_p_dict, log_prior_dists,
                                           n_tune, m, λ, d, covarM)
 
 
 
   # Propose an update
 
-  params_draw, log_q_ratio, mixture, λ, combi_array_prime = proposal_func(N_its, res, other_res,
-                                                                          it, params_cur, combi_array_cur, f_to_p_dict,
-                                                                          n_tune, m, λ, d, covarM)
+  params_draw, log_q_ratio, mixture, λ, combi_array_prime, scope = proposal_func(N_its, res, other_res,
+                                                                                  it, params_cur, combi_array_cur, f_to_p_dict,
+                                                                                  n_tune, m, λ, d, covarM)
 
   # println("Proposed Params")
 
   # Early return: Update is invalid
   if isfinite(log_q_ratio) == -Inf
-    return(params_cur, llh_array_cur, p_env_llh_array_cur, combi_array_cur, [false, -Inf, post_cur, -Inf, 2], mixture, λ_new)
+    return(params_cur, llh_array_cur, p_env_llh_array_cur, combi_array_cur, [false, -Inf, post_cur, -Inf, 2], mixture, λ)
                                # [is_accepted, log_α_ratio, post_cur, post_prime, reason]
   end
 
@@ -110,7 +159,7 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
     reason_ = 1
   end
 
-  return(params_cur, llh_array_cur, p_env_llh_array_cur, combi_array_cur, [is_accepted, log_α_ratio, post_cur, post_prime, reason_], mixture, λ_new)
+  return(params_cur, llh_array_cur, p_env_llh_array_cur, combi_array_cur, [is_accepted, log_α_ratio, post_cur, post_prime, reason_], mixture, λ)
 end
 
 
@@ -131,8 +180,8 @@ function metropolis_hastings_step_aug(proposal_func, posterior_func,
   # println("Proposed update")
 
   # Early return: Update is invalid
-  if isfinite(log_q_ratio) == -Inf
-    return(combi_array_cur, llh_array_cur, p_env_llh_array_cur, [false, -Inf, post_cur, -Inf, 2], dataaug_track)
+  if isfinite(log_q_ratio) == false
+    return(combi_array_cur, llh_array_cur, p_env_llh_array_cur, [false, -Inf, Inf, -Inf, dataaug_track[4]], dataaug_track)
                                                               # [is_accepted, log_α_ratio, post_cur, post_prime, reason]
   end
 
@@ -169,13 +218,15 @@ function metropolis_hastings_step_aug(proposal_func, posterior_func,
 
     is_accepted = true
     reason_ = 1
+
+    dataaug_track[3:4] = [is_accepted, reason_]
   end
 
-  return(llh_array_cur, p_env_llh_array_cur, combi_array_cur, [is_accepted, log_α_ratio, post_cur, post_prime, reason_], dataaug_track)
+  return(combi_array_cur, llh_array_cur, p_env_llh_array_cur, [is_accepted, log_α_ratio, post_cur, post_prime, reason_], dataaug_track)
 end
 
 
-# MH function for data augmentation
+# MH function for movements data augmentation
 
 function metropolis_hastings_step_moves(params_cur, combi_array_cur,
                                           llh_array_cur, p_env_llh_array_cur,
@@ -186,13 +237,13 @@ function metropolis_hastings_step_moves(params_cur, combi_array_cur,
 
   # Propose an update
 
-  combi_array_prime, log_q_ratio, scope, movements_record_prime, dataaug_track = propose_AddRem_Movements(combi_array_cur, params_cur, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict)
+  combi_array_prime, log_q_ratio, scope, movements_record_prime, dataaug_track = propose_AddRem_Movements(combi_array_cur, params_cur, movements_record, movement_dict, f_to_p_dict, ids_to_pos_dict)
 
   # println("Proposed update")
 
   # Early return: Update is invalid
   if isfinite(log_q_ratio) == -Inf
-    return(combi_array_cur, llh_array_cur, p_env_llh_array_cur, [false, -Inf, post_cur, -Inf, 2], movements_record, dataaug_track)
+    return(combi_array_cur, llh_array_cur, p_env_llh_array_cur, [false, -Inf, post_cur, -Inf, dataaug_track[4]], movements_record, dataaug_track)
                                                               # [is_accepted, log_α_ratio, post_cur, post_prime, reason]
   end
 
@@ -230,9 +281,11 @@ function metropolis_hastings_step_moves(params_cur, combi_array_cur,
 
     is_accepted = true
     reason_ = 1
+
+    dataaug_track[3:4] = [is_accepted, reason_]
   end
 
-  return(llh_array_cur, p_env_llh_array_cur, combi_array_cur, [is_accepted, log_α_ratio, post_cur, post_prime, reason_], movements_record, dataaug_track)
+  return(combi_array_cur, llh_array_cur, p_env_llh_array_cur, [is_accepted, log_α_ratio, post_cur, post_prime, reason_], movements_record, dataaug_track)
 end
 
 
@@ -240,26 +293,125 @@ end
 ### Adaptive MCMC ###
 #####################
 
+function Initialise(combi_array_cur, epi_params_true, epi_params_dists, record_of_movements, dict_of_movements, f_to_p_dict)
 
-function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
+  # Current values
+  β_c_cur, β_b_cur, γ_cur, F_cur, ϵ_cur, ρ_cur, ρ_E_cur, θ_bb_cur, θ_bd_cur = fill(missing, 9)
+
+  epi_params_draw = fill(missing, 9)
+
+  # True values
+  β_c_true, β_b_true, γ_true, F_true, ϵ_true, ρ_true, ρ_E_true, θ_bb_true, θ_bd_true = epi_params_true
+
+  # Prior distributions
+  d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E = epi_params_dists
+
+  # Set up LLH
+  llh_array_init = zeros(size(combi_array[1], 1), 360, 13)
+  p_env_llh_array_init = zeros(size(combi_array[4], 1), 360, 2)
+
+  scope_init = [1, 360, 1:size(combi_array[1], 1), 1:13]
+
+  combi_array_prime = deepcopy(combi_array_cur)
+
+
+  arb = true
+  while arb == true
+    # Initialise parameters
+    if ismissing(β_c_true)
+      β_c_cur = rand(d_β_c)
+    else
+      β_c_cur = β_c_true
+    end
+    if ismissing(β_b_true)
+      β_b_cur = rand(d_β_b)
+    else
+      β_b_cur = β_b_true
+    end
+    if ismissing(γ_true)
+      γ_cur = rand(d_γ)
+    else
+      γ_cur = γ_true
+    end
+    if ismissing(F_true)
+      F_cur = rand(d_F)
+    else
+      F_cur = F_true
+    end
+    if ismissing(ϵ_true)
+      ϵ_cur = rand(d_ϵ)
+    else
+      ϵ_cur = ϵ_true
+    end
+    if ismissing(ρ_true)
+      ρ_cur = rand(d_ρ)
+    else
+      ρ_cur = ρ_true
+    end
+    if ismissing(ρ_E_true)
+      ρ_E_cur = rand(d_ρ_E)
+    else
+      ρ_E_cur = ρ_E_true
+    end
+    if ismissing(θ_bb_true)
+      θ_bb_cur = rand(d_θ_bb)
+    else
+      θ_bb_cur = θ_bb_true
+    end
+    if ismissing(θ_bd_true)
+      θ_bd_cur = rand(d_θ_bd)
+    else
+      θ_bd_cur = θ_bd_true
+    end
+
+    # Current draws
+    epi_params_draw = [β_c_cur, β_b_cur, γ_cur, F_cur, ϵ_cur, ρ_cur, ρ_E_cur, θ_bb_cur, θ_bd_cur]
+
+    # Update the probabilities
+
+    combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, epi_params_draw, f_to_p_dict, scope_init)
+
+    #Calculate the log-likelihood
+
+    llh_array_init, p_env_llh_array_init = update_llh_array_ALL(scope_init,
+                                                                  llh_array_init, p_env_llh_array_init,
+                                                                  combi_array_prime, record_of_movements,
+                                                                  epi_params_draw, dict_of_movements, f_to_p_dict)
+
+    init_llh = calc_llh_h_and_p(scope_init, llh_array_init, p_env_llh_array_init)
+
+    if init_llh != -Inf
+      break
+    end
+  end
+
+  println("Initialised")
+
+
+  return(epi_params_draw, combi_array_prime)
+end
+
+
+function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
+                                combi_array, moves_record,
                                 params_init, tuning,
-                                dict_of_movements, f_to_p_dict)
+                                dict_of_movements, f_to_p_dict, ids_to_pos_dict)
 
   ##################
   ### Extraction ###
   ##################
 
     λ_inf = tuning[1]
-    λ_det = tuning[2]
+    λ_det = tuning[3]
 
-    m_inf = tuning[3]
+    m_inf = tuning[2]
     m_det = tuning[4]
 
   ##############################################
   ### Initialise the parameters and epidemic ###
   ##############################################
 
-    params_cur = Initialise(params_init, ...)
+    params_cur, combi_array_cur = Initialise(combi_array, params_init, epi_params_dists, record_of_movements, dict_of_movements, f_to_p_dict)
 
     covarM_inf = CovMatrix()
     covarM_det = CovMatrix()
@@ -268,7 +420,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
   ### Results matrices ###
   ########################
 
-    res, other_res, aug_res, tuning_res, update_tracker = create_results_arrays(N_its, param_names)
+    res, other_res, aug_res, tuning_res, update_tracker = create_results_arrays(N_its, params_init)
 
   ##########################
   ### Functional objects ###
@@ -276,8 +428,8 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
 
     it = 1
 
-    Δm_inf = m_init/100
-    Δm_det = m_init/100
+    Δm_inf = m_inf/100
+    Δm_det = m_det/100
 
     n_tune = 1
 
@@ -286,18 +438,18 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
   ### Likelihood ###
   ##################
 
-  llh_array_init = zeros(size(combi_array[1], 1), 360, 13)
+  llh_array_init = zeros(size(combi_array_cur[1], 1), 360, 13)
 
   # 1. m_off_llh, 2. m_on_out_llh, 3. c_exp_llh, 4. c_inf_llh, 5. exp_det_llh,
   # 6. inf_det_llh, 7. c_dth_llh, 8. b_exp_llh, 9. b_inf_llh, 10. b_bths_llh,
   # 11. bS_dths_llh, 12. bE_dths_llh, 13. bI_dths_llh
 
-  p_env_llh_array_init = zeros(size(combi_array[4], 1), 360, 2)
+  p_env_llh_array_init = zeros(size(combi_array_cur[4], 1), 360, 2)
 
-  llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL([1, 360, 1:size(combi_array[1], 1), 1:13],
+  llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL([1, 360, 1:size(combi_array_cur[1], 1), 1:13],
                                                             llh_array_init, p_env_llh_array_init,
-                                                            combi_array, record_of_movements,
-                                                            params_init, dict_of_movements, f_to_p_dict)
+                                                            combi_array_cur, record_of_movements,
+                                                            params_cur, dict_of_movements, f_to_p_dict)
 
 
   ###########################
@@ -305,7 +457,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
   ###########################
 
     progbar = Progress(N_its, dt=10,
-                        desc = "Running $N_its iterations for $region:",
+                        desc = "Running $N_its iterations:",
                         barglyphs=BarGlyphs('|','█', ['▁' ,'▂' ,'▃' ,'▄' ,'▅' ,'▆', '▇'],' ','|',),
                         barlen=10)
 
@@ -331,8 +483,8 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
                                                     propose_epidemic_params, update_llh_array_EPIDEMIC, Infection_params_posterior,
                                                     params_cur, combi_array_cur,
                                                     llh_array_cur, p_env_llh_array_cur,
+                                                    f_to_p_dict, epi_params_dists,
                                                     n_tune, m_inf, λ_inf, 5, covarM_inf)
-
 
           if mixture >= 0.05 # mixture is set to 0 while tuning λ
             if mh_res_inf[1] == 0
@@ -363,6 +515,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
                                                     propose_detection_params, update_llh_array_DETECTION, Detection_params_posterior,
                                                     params_cur, combi_array_cur,
                                                     llh_array_cur, p_env_llh_array_cur,
+                                                    f_to_p_dict, epi_params_dists,
                                                     n_tune, m_det, λ_det, 2, covarM_det)
 
 
@@ -381,8 +534,9 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Move S→E event through time ###
       ###################################
 
-        mh_res_move_SE = [-Inf, -Inf, Inf, Inf]
+        mh_res_move_SE = [-Inf, -Inf, Inf, Inf, Inf]
         move_SE_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                       # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δt, :mSE_num_moved
 
         if data_aug_infer[1] == true
 
@@ -391,7 +545,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
                                                                                         params_cur, combi_array_cur,
                                                                                         llh_array_cur, p_env_llh_array_cur,
                                                                                         f_to_p_dict, ids_to_pos_dict,
-                                                                                        movements_record, movement_dict)
+                                                                                        record_of_movements, dict_of_movements)
         end
 
 
@@ -399,8 +553,9 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Move E→I event through time ###
       ###################################
 
-        mh_res_move_EI = [-Inf, -Inf, Inf, Inf]
+        mh_res_move_EI = [-Inf, -Inf, Inf, Inf, Inf]
         move_EI_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                      # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δt, :mEI_num_moved
 
         if data_aug_infer[2] == true
 
@@ -409,7 +564,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
                                                                                       params_cur, combi_array_cur,
                                                                                       llh_array_cur, p_env_llh_array_cur,
                                                                                       f_to_p_dict, ids_to_pos_dict,
-                                                                                      movements_record, movement_dict)
+                                                                                      record_of_movements, dict_of_movements)
         end
 
 
@@ -417,8 +572,9 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Add/Remove S→E event ###
       ############################
 
-        mh_res_AddRem_SE = [-Inf, -Inf, Inf, Inf]
+        mh_res_AddRem_SE = [-Inf, -Inf, Inf, Inf, Inf]
         AddRem_SE_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                         # :arSE_position, :arSE_t, :arSE_is_accepted, :arSE_reason, :arSE_Δ, :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
 
         if data_aug_infer[3] == true
 
@@ -427,7 +583,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
                                                                                 params_cur, combi_array_cur,
                                                                                 llh_array_cur, p_env_llh_array_cur,
                                                                                 f_to_p_dict, ids_to_pos_dict,
-                                                                                movements_record, movement_dict)
+                                                                                record_of_movements, dict_of_movements)
         end
 
 
@@ -435,8 +591,9 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Add/Remove E→I event ###
       ############################
 
-        mh_res_AddRem_EI = [-Inf, -Inf, Inf, Inf]
+        mh_res_AddRem_EI = [-Inf, -Inf, Inf, Inf, Inf]
         AddRem_EI_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                         # :arEI_position, :arEI_t, :arEI_is_accepted, :arEI_reason, :arEI_Δ, :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
 
         if data_aug_infer[4] == true
 
@@ -445,7 +602,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
                                                                                   params_cur, combi_array_cur,
                                                                                   llh_array_cur, p_env_llh_array_cur,
                                                                                   f_to_p_dict, ids_to_pos_dict,
-                                                                                  movements_record, movement_dict)
+                                                                                  record_of_movements, dict_of_movements)
         end
 
 
@@ -453,17 +610,20 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Add/Remove Det event ###
       ############################
 
-        mh_res_AddRem_Det = [-Inf, -Inf, Inf, Inf]
-        AddRem_dets_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+        mh_res_AddRem_Det = [-Inf, -Inf, Inf, Inf, Inf]
+        AddRem_Det_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                           # :arDet_position, :arDet_t, :arDet_is_accepted, :arDet_reason, :arDet_ΔE, :arDet_ΔI,
+                                                      # :arDet_Edet_before, :arDet_Idet_before, :arDet_Edet_after, :arDet_Idet_after,
+                                                      # :arDet_cE, :arDet_cI
 
         if data_aug_infer[5] == true
 
-          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Det, AddRem_dets_track =
+          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Det, AddRem_Det_track =
                                                   metropolis_hastings_step_aug(propose_AddRem_Det, generic_posterior_dataaug,
                                                                                 params_cur, combi_array_cur,
                                                                                 llh_array_cur, p_env_llh_array_cur,
                                                                                 f_to_p_dict, ids_to_pos_dict,
-                                                                                movements_record, movement_dict)
+                                                                                record_of_movements, dict_of_movements)
         end
 
 
@@ -471,17 +631,22 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Add/Remove Death event ###
       ##############################
 
-        mh_res_AddRem_Death = [-Inf, -Inf, Inf, Inf]
-        AddRem_deaths_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+        mh_res_AddRem_Death = [-Inf, -Inf, Inf, Inf, Inf]
+        AddRem_Deaths_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                             # :arDeaths_position, :arDeaths_t, :arDeaths_is_accepted, :arDeaths_reason,
+                                                 # :arDeaths_ΔS, :arDeaths_ΔE, :arDeaths_ΔI,
+                                                 # :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
+                                                 # :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
+                                                 # :arDeaths_cS, :arDeaths_cE, :arDeaths_cI
 
         if data_aug_infer[6] == true
 
-          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Death, AddRem_deaths_track =
+          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Death, AddRem_Deaths_track =
                                                 metropolis_hastings_step_aug(propose_AddRem_Deaths, generic_posterior_dataaug,
                                                                               params_cur, combi_array_cur,
                                                                               llh_array_cur, p_env_llh_array_cur,
                                                                               f_to_p_dict, ids_to_pos_dict,
-                                                                              movements_record, movement_dict)
+                                                                              record_of_movements, dict_of_movements)
         end
 
 
@@ -489,17 +654,20 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Add/Remove p_env ###
       ########################
 
-        mh_res_AddRem_penv = [-Inf, -Inf, Inf, Inf]
+        mh_res_AddRem_penv = [-Inf, -Inf, Inf, Inf, Inf]
         AddRem_penv_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                           # :arpenv_position, :arpenv_t, :arpenv_is_accepted, :arpenv_reason, :arpenv_Δr, :arpenv_Δn,
+                                             # :arpenv_r_pres_before, :arpenv_n_pres_before, :arpenv_r_pres_after, :arpenv_n_pres_after,
+                                             # :arpenv_p_env_prev, :arpenv_pI
 
         if data_aug_infer[7] == true
 
-          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_penv, AddRem_penv_trackk =
+          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_penv, AddRem_penv_track =
                                               metropolis_hastings_step_aug(propose_AddRem_penv, generic_posterior_dataaug,
                                                                             params_cur, combi_array_cur,
                                                                             llh_array_cur, p_env_llh_array_cur,
                                                                             f_to_p_dict, ids_to_pos_dict,
-                                                                            movements_record, movement_dict)
+                                                                            record_of_movements, dict_of_movements)
         end
 
 
@@ -507,16 +675,20 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
       ### Add/Remove Movement event ###
       #################################
 
-        mh_res_AddRem_moves = [-Inf, -Inf, Inf, Inf]
-        AddRem_moves_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+        mh_res_AddRem_Moves = [-Inf, -Inf, Inf, Inf, Inf]
+        AddRem_Moves_track = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                            # :arMoves_position, :arMoves_t, :arMoves_is_accepted, :arMoves_reason,
+                                               # :arMoves_Soff_before, :arMoves_Eoff_before, :arMoves_Ioff_before,
+                                               # :arMoves_Soff_after, :arMoves_Eoff_after, :arMoves_Ioff_after,
+                                               # :arMoves_cS, :arMoves_cE, :arMoves_cI
 
         if data_aug_infer[8] == true
 
-          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_moves, moves_record, AddRem_moves_track =
+          combi_array_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Moves, moves_record, AddRem_Moves_track =
                                                   metropolis_hastings_step_moves(params_cur, combi_array_cur,
                                                                                   llh_array_cur, p_env_llh_array_cur,
                                                                                   f_to_p_dict, ids_to_pos_dict,
-                                                                                  moves_record, movement_dict)
+                                                                                  record_of_movements, dict_of_movements)
         end
 
 
@@ -529,16 +701,17 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
         res[it,:] = params_cur
 
         # Record other
-        other_res[it,:] =
+        other_res[it,:] = [mh_res_inf ; mh_res_det ; it]
 
         # Record aug
-        aug_res[it,:] = # NOTE: WRITE FUNCTION TO UPDATE
+        aug_res[it,:] = [mh_res_move_SE ; mh_res_move_EI ; mh_res_AddRem_SE ; mh_res_AddRem_EI ; mh_res_AddRem_Det ; mh_res_AddRem_Death ; mh_res_AddRem_penv ; mh_res_AddRem_Moves ; it]
 
         # Record tuning params
         tuning_res[it, :] = [λ_inf, m_inf, λ_det, m_det, it]
 
         # Record tracking
-        updater_tracker[it,:] = # NOTE: WRITE FUNCTION TO UPDATE
+        update_tracker[it,:] = [move_SE_track ; move_EI_track ; AddRem_SE_track ; AddRem_EI_track ;
+                                 AddRem_Det_track ; AddRem_Deaths_track ; AddRem_penv_track ; AddRem_Moves_track]
 
         # if rem(it, 1000) == 0
         #   println("it = ", it)
@@ -557,3 +730,10 @@ function Blk_Adaptive_RWM_MCMC(;N_its, combi_array, moves_record,
 
   return(res, other_res, aug_res, tuning_res, update_tracker)
 end
+
+# Reasons
+# 0 = MH rejected
+# 1 = MH accepted
+# 2 = Invalid data
+# 3 = Propsal no difference
+# 4 = Proposal outside boundss

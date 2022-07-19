@@ -1,6 +1,9 @@
 
+include("LoadPackages.jl")
+include("ConfigureRun_Set1.jl")
 include("Likelihood.jl")
 include("DataUpdaters.jl")
+include("Proposals.jl")
 
 #########################################
 ### Constructing the likelihood array ###
@@ -21,7 +24,9 @@ llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(scope, llh_array, p_en
 
 ### propose_Move_SE
 
-combi_array_prime, log_q_ratio, scope, Move_SE_track = propose_Move_SE(combi_array, f_to_p_dict)
+combi_array_prime, log_q_ratio, scope, Move_SE_track = propose_Move_SE(combi_array, epi_params_true, f_to_p_dict)
+
+combi_array_prime, log_q_ratio, scope, Move_SE_track = propose_Move_SE(combi_array_prime, epi_params_true, f_to_p_dict)
 
 
 ### propose_Move_EI
@@ -84,4 +89,14 @@ using ProfileView
 
 @profview begin
 
+end
+
+
+
+combi_array[2][:,:,13]
+
+argh = 1
+while argh <= 100
+    combi_array[2][:,:,13]
+    argh += 1
 end

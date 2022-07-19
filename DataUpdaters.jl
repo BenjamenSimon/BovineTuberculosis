@@ -1,6 +1,4 @@
 
-include("Likelihood.jl")
-
 ###################################################################
 ### Functions to calculate exposure and infection probabilities ###
 ###################################################################
@@ -270,7 +268,7 @@ end
 
 ### ADD/REM SE ###
 
-function update_data_AddRem_SE(combi_array_cur, position, t, Δ, f_to_p_dict)
+function update_data_AddRem_SE(combi_array_cur, position, t, Δ, f_to_p_dict, tracker)
 
   combi_array_prime = deepcopy(combi_array_cur)
 
@@ -306,6 +304,8 @@ function update_data_AddRem_SE(combi_array_cur, position, t, Δ, f_to_p_dict)
   # :cE_init, :cE_Moves, :cE_postM, :cE_postEI, :cE_postDet, :cE_final
   combi_array_prime[1][position, lower_t, [5,8,11,14,17,20]] .+= Δ
 
+  tracker[6:9] = [combi_array_cur[2][position, t, 13], combi_array_prime[2][position, t, 13],  combi_array_cur[1][position, t, 4], combi_array_cur[3][position, t, 4]]
+               #  :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
 
   ###############
   ### Quick check for validity
@@ -314,7 +314,7 @@ function update_data_AddRem_SE(combi_array_cur, position, t, Δ, f_to_p_dict)
   posi_check = (combi_array_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
-    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0)
+    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0, tracker)
                                                                       # invalid
   end
 
@@ -334,13 +334,13 @@ function update_data_AddRem_SE(combi_array_cur, position, t, Δ, f_to_p_dict)
   combi_array_prime[4][f_to_p_dict[position][2], (lower_t+1):upper_t, [5,8]] .+= Δ
 
 
-  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1)
-                                                                      # valid
+  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1, tracker)
+                                                                          # valid
 end
 
 ### ADD/REM EI ###
 
-function update_data_AddRem_EI(combi_array_cur, position, t, Δ, epi_params, f_to_p_dict)
+function update_data_AddRem_EI(combi_array_cur, position, t, Δ, epi_params, f_to_p_dict, tracker)
 
   combi_array_prime = deepcopy(combi_array_cur)
 
@@ -377,6 +377,9 @@ function update_data_AddRem_EI(combi_array_cur, position, t, Δ, epi_params, f_t
   combi_array_prime[1][position, lower_t, [6,9,12,15,18,21]] .+= Δ
 
 
+  tracker[6:9] = [combi_array_cur[2][position, t, 14], combi_array_prime[2][position, t, 14],  combi_array_cur[1][position, t, 5], combi_array_cur[3][position, t, 5]]
+                # :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
+
   ###############
   ### Quick check for validity
   ###############
@@ -384,7 +387,7 @@ function update_data_AddRem_EI(combi_array_cur, position, t, Δ, epi_params, f_t
   posi_check = (combi_array_prime[1][position, (lower_t):(upper_t), [5,6,8,9,11,12,14,15,17,18,20,21]] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
-    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0)
+    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0, tracker)
                                                                       # invalid
   end
 
@@ -411,14 +414,14 @@ function update_data_AddRem_EI(combi_array_cur, position, t, Δ, epi_params, f_t
   combi_array_prime = update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, [lower_t, upper_t, h_positions])
 
 
-  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1)
+  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1, tracker)
                                                                       # valid
 end
 
 
 ### ADD/REM Detections ###
 
-function update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict)
+function update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict, tracker)
 
   combi_array_prime = deepcopy(combi_array_cur)
 
@@ -460,6 +463,10 @@ function update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f
   combi_array_prime[1][position, (lower_t+1):upper_t, [6,9,12,15,18,21]] .-= Δs[2]
 
 
+  tracker[7:12] = [combi_array_cur[2][position, t, 19:20] ; combi_array_prime[2][position, t, 19:20] ;  combi_array_cur[1][position, t, 14:15]]
+                # :arDet_Edet_before, :arDet_Idet_before, :arDet_Edet_after, :arDet_Idet_after, :arDet_cE, :arDet_cI
+
+
   ###############
   ### Quick check for validity
   ###############
@@ -467,7 +474,7 @@ function update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f
   posi_check = (combi_array_prime[1][position, (lower_t):(upper_t), [5,6,8,9,11,12,14,15,17,18,20,21]] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
-    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0)
+    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0, tracker)
                                                                       # invalid
   end
 
@@ -494,14 +501,14 @@ function update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f
   combi_array_prime = update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, [lower_t, upper_t, h_positions])
 
 
-  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1)
+  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1, tracker)
                                                                       # valid
 end
 
 
 ### ADD/REM Deaths ###
 
-function update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict)
+function update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict, tracker)
 
   combi_array_prime = deepcopy(combi_array_cur)
 
@@ -548,6 +555,12 @@ function update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params
   combi_array_prime[1][position, (lower_t+1):upper_t, [6,9,12,15,18,21]] .-= Δs[3]
 
 
+  tracker[8:16] = [combi_array_cur[2][position, t, 22:24] ; combi_array_prime[2][position, t, 22:24] ;  combi_array_cur[1][position, t, 16:18]]
+                # :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
+                # :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
+                # :arDeaths_cS, :arDeaths_cE, :arDeaths_cI
+
+
   ###############
   ### Quick check for validity
   ###############
@@ -555,7 +568,7 @@ function update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params
   posi_check = (combi_array_prime[1][position, (lower_t):(upper_t), 4:21] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
-    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0)
+    return(combi_array, [lower_t, upper_t, h_positions, h_element_range], 0, tracker)
                                                                       # invalid
   end
 
@@ -587,7 +600,7 @@ function update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params
   combi_array_prime = update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, [lower_t, upper_t, h_positions])
 
 
-  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1)
+  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1, tracker)
                                                                       # valid
 end
 
@@ -596,7 +609,7 @@ end
 
 function update_data_AddRem_Movement(combi_array_cur, scope, combi_array_prime, epi_params, differences_oi, parish_differences)
 
-  t, T, position, h_positions = scope[1:4]
+  t, T, h_positions, position = scope[[1,2,3,5]]
 
   ##########################################
   ### Update the farm that moved animals ###
@@ -704,7 +717,7 @@ function update_data_AddRem_Movement(combi_array_cur, scope, combi_array_prime, 
 
     if sum(posi_check) != prod(size(posi_check))
       # returns changed position as a Int instead of a Vector
-      return(combi_array_prime, 3)
+      return(combi_array_prime, 2)
     end
   end
 
@@ -715,7 +728,7 @@ end
 
 ### ADD/REM Environmental Pressure ###
 
-function update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params, f_to_p_dict, ids_to_pos_dict)
+function update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params, f_to_p_dict, ids_to_pos_dict, tracker)
 
   combi_array_prime = deepcopy(combi_array_cur)
 
@@ -752,6 +765,9 @@ function update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params
   combi_array_prime[4][p_position, t, 20] += Δpenv
 
 
+  tracker[7:12] = [combi_array_cur[4][p_position, t, 16:17] ; combi_array_prime[4][p_position, t, 16:17] ;  combi_array_cur[4][p_position, (t+1), [19,6]]]
+                # :arpenv_r_pres_before, :arpenv_n_pres_before, :arpenv_r_pres_after, :arpenv_n_pres_after, :arpenv_p_env_prev, :arpenv_pI
+
   ##############
   ### Update the probabilities
   ##############
@@ -759,6 +775,6 @@ function update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params
   combi_array_prime = update_pers_EPIDEMIC(combi_array_prime, epi_params, f_to_p_dict, [lower_t, upper_t, h_positions])
 
 
-  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1)
+  return(combi_array_prime, [lower_t, upper_t, h_positions, h_element_range], 1, tracker)
                                                                       # valid
 end

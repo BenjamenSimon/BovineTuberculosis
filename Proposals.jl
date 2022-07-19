@@ -1,7 +1,4 @@
 
-include("Likelihood.jl")
-include("DataUpdaters.jl")
-
 function rng_mvhyper(n, k)
   # n is a vector of size of pop for each group
   # k is the number of trials (total number moving)
@@ -47,7 +44,8 @@ function propose_Move_SE(combi_array_cur, epi_params, f_to_p_dict)
 
   if 360 < t + Δ || t + Δ <= 0
     log_q_ratio = -Inf
-    Move_SE_track = [position, t, 0, 4, Δ, NaN]
+    Move_SE_track = [position, t, 0, 4, Δ, 1]
+                   # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
     return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_SE_track)
   end
 
@@ -58,12 +56,13 @@ function propose_Move_SE(combi_array_cur, epi_params, f_to_p_dict)
 
   if valid != 1
     log_q_ratio = -Inf
-    Move_SE_track = [position, t, 0, 2, Δ, NaN]
+    Move_SE_track = [position, t, 0, 2, Δ, 1]
+                   # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
     return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_SE_track)
   end
 
   Move_SE_track = [position, t, 0, 0, Δ, 1]
-  # num_SE_moved set to 1
+                 # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
 
   return(combi_array_prime, 0, scope, Move_SE_track)
 end
@@ -92,7 +91,8 @@ function propose_Move_EI(combi_array_cur, epi_params, f_to_p_dict)
 
   if 360 < t + Δ || t + Δ <= 0
     log_q_ratio = -Inf
-    Move_EI_track = [position, t, 0, 4, Δ, NaN]
+    Move_EI_track = [position, t, 0, 4, Δ, 1]
+                   # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
     return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_EI_track)
   end
 
@@ -103,12 +103,13 @@ function propose_Move_EI(combi_array_cur, epi_params, f_to_p_dict)
 
   if valid != 1
     log_q_ratio = -Inf
-    Move_EI_track = [position, t, 0, 2, Δ, NaN]
+    Move_EI_track = [position, t, 0, 2, Δ, 1]
+                  # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
     return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_EI_track)
   end
 
   Move_EI_track = [position, t, 0, 0, Δ, 1]
-  # num_EI_moved set to 1
+                 # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
 
   return(combi_array_prime, 0, scope, Move_EI_track)
 end
@@ -129,20 +130,19 @@ function propose_AddRem_SE(combi_array_cur, epi_params, f_to_p_dict)
 
   t, position = farms_with_S_and_exp_prob_at_t[rand(1:size(farms_with_S_and_exp_prob_at_t, 1)), :]
 
+  AddRem_SE_track = [position, t, 0, 0, 1, -999, -999, -999, -999.]
+                   # :arSE_position, :arSE_t, :arSE_is_accepted, :arSE_reason, :arSE_Δ, :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
+
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_AddRem_SE(combi_array_cur, position, t, 1, f_to_p_dict)
+  combi_array_prime, scope, valid, AddRem_SE_track = update_data_AddRem_SE(combi_array_cur, position, t, 1, f_to_p_dict, AddRem_SE_track)
   # Δ = 1
 
   if valid != 1
     log_q_ratio = -Inf
-    AddRem_SE_track = [position, t, 0, 2, 1, NaN]
-    # Δ set to 1
+    AddRem_SE_track[4] = 2
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_SE_track)
   end
-
-  AddRem_SE_track = [position, t, 0, 0, 1, 1]
-  # Δ set to 1
 
   return(combi_array_prime, 0, scope, AddRem_SE_track)
 end
@@ -163,20 +163,20 @@ function propose_AddRem_EI(combi_array_cur, epi_params, f_to_p_dict)
 
   t, position = farms_with_E_at_t[rand(1:size(farms_with_E_at_t, 1)), :]
 
+  AddRem_EI_track = [position, t, 0, 0, 1, -999, -999, -999, -999.]
+                   # :arEI_position, :arEI_t, :arEI_is_accepted, :arEI_reason, :arEI_Δ, :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
+
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_AddRem_EI(combi_array_cur, position, t, 1, epi_params, f_to_p_dict)
+  combi_array_prime, scope, valid, AddRem_EI_track = update_data_AddRem_EI(combi_array_cur, position, t, 1, epi_params, f_to_p_dict, AddRem_EI_track)
   # Δ = 1
 
   if valid != 1
     log_q_ratio = -Inf
-    AddRem_EI_track = [position, t, 0, 2, 1, NaN]
-    # Δ set to 1
+    AddRem_EI_track[4] = 2
+
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_EI_track)
   end
-
-  AddRem_EI_track = [position, t, 0, 0, 1, 1]
-  # Δ set to 1
 
   return(combi_array_prime, 0, scope, AddRem_EI_track)
 end
@@ -190,7 +190,7 @@ function detection_permutations(cStates_postEI, cDet_cur, epi_params)
 
   total_det_t = sum(cDet_cur)
 
-  permutations = fill(-99., Int64(factorial(total_det_t+2-1)/(factorial(total_det_t)*factorial(2-1))), 3)
+  permutations = fill(-99., Int64(factorial(big(total_det_t+2-1))/(factorial(big(total_det_t))*factorial(2-1))), 3)
 
   iter = 1
 
@@ -235,24 +235,26 @@ function propose_AddRem_Det(combi_array_cur, epi_params, f_to_p_dict)
 
   Δs = detections_t_new_and_probs[1:2] - detections_t
 
+  AddRem_Det_track = [position, t, 0, 0, Δs[1], Δs[2], -999, -999, -999, -999, -999, -999]
+                  # :arDet_position, :arDet_t, :arDet_is_accepted, :arDet_reason, :arDet_ΔE, :arDet_ΔI,
+                                   # :arDet_Edet_before, :arDet_Idet_before, :arDet_Edet_after, :arDet_Idet_after,
+                                   # :arDet_cE, :arDet_cI
   if Δs[1] == 0
     log_q_ratio = -Inf
-    AddRem_Det_track = [position, t, 0, 2, 1, NaN]
+    AddRem_Det_track[4] = 3
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Det_track)
   end
 
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict)
+  combi_array_prime, scope, valid, AddRem_Det_track = update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict, AddRem_Det_track)
 
   if valid != 1
     log_q_ratio = -Inf
-    AddRem_Det_track = [position, t, 0, 2, 1, NaN]
+    AddRem_Det_track[4] = 2
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Det_track)
   end
-
-  AddRem_Det_track = [position, t, 0, 0, 1, 1]
 
 
   ### Calculate the log q ratio (proposal density ratio) ###
@@ -314,25 +316,29 @@ function propose_AddRem_Deaths(combi_array_cur, epi_params, f_to_p_dict)
 
   Δs = deaths_t_new - deaths_t
 
+  AddRem_Deaths_track = [position, t, 0, 0, Δs[1], Δs[2], Δs[3], -999, -999, -999, -999, -999, -999, -999, -999, -999]
+                      # :arDeaths_position, :arDeaths_t, :arDeaths_is_accepted, :arDeaths_reason,
+                                          # :arDeaths_ΔS, :arDeaths_ΔE, :arDeaths_ΔI,
+                                          # :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
+                                          # :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
+                                          # :arDeaths_cS, :arDeaths_cE, :arDeaths_cI
+
   if sum(Δs) == 0
     log_q_ratio = -Inf
-    AddRem_Deaths_track = [position, t, 0, 2, 1, NaN]
+    AddRem_Deaths_track[4] = 3
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Deaths_track)
   end
 
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict)
+  combi_array_prime, scope, valid, AddRem_Deaths_track = update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict, AddRem_Deaths_track)
 
   if valid != 1
     log_q_ratio = -Inf
-    AddRem_Deaths_track = [position, t, 0, 2, 1, NaN]
+    AddRem_Deaths_track[4] = 2
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Deaths_track)
   end
-
-  AddRem_Deaths_track = [position, t, 0, 0, 1, 1]
-
 
   ### Calculate the log q ratio (proposal density ratio) ###
   log_q_ratio = log_pdf_mvhyper(cStates_postDet, deaths_t) - log_pdf_mvhyper(cStates_postDet, deaths_t_new) # q_cur_given_prime - q_prime_given_cur
@@ -362,7 +368,7 @@ function log_q_ratio_movements(log_q_ratio_data)
   return(log_q_ratio)
 end
 
-function generate_new_movement(combi_array_cur, position, t, epi_params, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict)
+function generate_new_movement(combi_array_cur, position, t, epi_params, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict, tracker)
 
   combi_array_prime = deepcopy(combi_array_cur)
   movement_record_prime = deepcopy(movement_record)
@@ -509,12 +515,14 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
   log_q_ratio_data[1, :] = [states, moves_off]
   log_q_ratio_data[(2+size_moves_cur), :] = [states, new_move_off]
 
+  tracker[5:13] = [moves_off ; new_move_off ; states]
+
   for k in 1:size_moves_cur
     log_q_ratio_data[(1+k), :] = [temp_moves_cur[k, 1:3], temp_moves_cur[k, 4:6]]
     log_q_ratio_data[(2+size_moves_cur+k), :] = [temp_moves_prime[k, 1:3], temp_moves_prime[k, 4:6]]
   end
 
-  return(combi_array_prime, movement_record_prime, [lower_t, upper_t, position, h_positions_oi, h_element_range], differences_oi, parish_differences, log_q_ratio_data)
+  return(combi_array_prime, movement_record_prime, [lower_t, upper_t, h_positions_oi, h_element_range, position], differences_oi, parish_differences, log_q_ratio_data, tracker)
 end
 
 function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict)
@@ -533,10 +541,17 @@ function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, 
 
   t, position = farms_with_permutable_movements_at_t[rand(1:size(farms_with_permutable_movements_at_t, 1)), :]
 
+
+  AddRem_Movements_track = [position, t, 0, 0, -999, -999, -999, -999, -999, -999, -999, -999, -999]
+                      # :arMoves_position, :arMoves_t, :arMoves_is_accepted, :arMoves_reason,
+                                         # :arMoves_Soff_before, :arMoves_Eoff_before, :arMoves_Ioff_before,
+                                         # :arMoves_Soff_after, :arMoves_Eoff_after, :arMoves_Ioff_after,
+                                         # :arMoves_cS, :arMoves_cE, :arMoves_cI
+
   ### Generate a new set of movements ###
 
-  combi_array_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data = generate_new_movement(combi_array_cur, position, t, epi_params, movement_record,
-                                                                                                                              movement_dict, f_to_p_dict, ids_to_pos_dict)
+  combi_array_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, AddRem_Movements_track = generate_new_movement(combi_array_cur, position, t, epi_params, movement_record,
+                                                                                                                            movement_dict, f_to_p_dict, ids_to_pos_dict, AddRem_Movements_track)
 
   ### Calculate the update ###
 
@@ -544,14 +559,12 @@ function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, 
 
   if valid != 1
     log_q_ratio = -Inf
-    AddRem_Movements_track = [position, t, 0, 3, 1, NaN]
+    AddRem_Movements_track[4] = 2
     return(combi_array_cur, log_q_ratio, scope, movement_record, AddRem_Movements_track)
   end
 
   ### Calculate the log q ratio (proposal density ratio) ###
   log_q_ratio = log_q_ratio_movements(log_q_ratio_data)
-
-  AddRem_Movements_track = [position, t, 0, 0, 1, 1]
 
   return(combi_array_prime, log_q_ratio, scope, movement_record_prime, AddRem_Movements_track)
 end
@@ -588,9 +601,14 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
 
   Δs = [propose_r_pressure_t - penv_data[3],  propose_n_pressure_t - penv_data[4]]
 
+  AddRem_penv_track = [p_position, t, 0, 0, Δs[1], Δs[2], -999, -999, -999, -999, -999, -999]
+                      # :arpenv_position, :arpenv_t, :arpenv_is_accepted, :arpenv_reason, :arpenv_Δr, :arpenv_Δn,
+                                        # :arpenv_r_pres_before, :arpenv_n_pres_before, :arpenv_r_pres_after, :arpenv_n_pres_after,
+                                        # :arpenv_p_env_prev, :arpenv_pI
+
   if sum(Δs) == 0
     log_q_ratio = -Inf
-    AddRem_penv_track = [p_position, t, 0, 2]
+    AddRem_penv_track[4] = 3
 
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_penv_track)
   end
@@ -598,11 +616,11 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params, f_to_p_dict, ids_to_pos_dict)
+  combi_array_prime, scope, valid, AddRem_penv_track = update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params, f_to_p_dict, ids_to_pos_dict, AddRem_penv_track)
 
   if valid != 1
     log_q_ratio = -Inf
-    AddRem_penv_track = [p_position, t, 0, 2, 1, NaN]
+    AddRem_penv_track[4] = 2
 
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_penv_track)
   end
@@ -617,10 +635,6 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
   q_cur_n_press_given_prime = logpdf(Poisson(sum(penv_data[1:2])), penv_data[4])
 
   log_q_ratio = (q_cur_r_press_given_prime + q_cur_n_press_given_prime) - (q_prime_r_press_given_cur + q_prime_n_press_given_cur)
-
-
-  AddRem_penv_track = [p_position, t, 0, 0, 1, 1]
-
 
   return(combi_array_prime, log_q_ratio, scope, AddRem_penv_track)
 end
@@ -757,7 +771,7 @@ function propose_epidemic_params(N_its, results, other_res,
 
     combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, params_draw, f_to_p_dict, scope)
 
-  return(params_draw, 0, mixture, λ, combi_array_prime)
+  return(params_draw, 0, mixture, λ, combi_array_prime, scope)
 end
 
 ####################################
@@ -779,5 +793,5 @@ function propose_detection_params(N_its, results, other_res,
     scope = [1, 360, 1:size(combi_array_cur[1], 1), [5,6]]
     # lower_t, upper_t, h_pos_ids, h_element_range
 
-  return(params_draw, 0, mixture, λ, combi_array_cur)
+  return(params_draw, 0, mixture, λ, combi_array_cur, scope)
 end

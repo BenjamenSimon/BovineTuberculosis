@@ -1,6 +1,4 @@
 
-include("ConfigureRun_Set1.jl")
-
 ################################################
 ### Multivariate Hypergeometric pdf function ###
 ################################################
@@ -379,7 +377,7 @@ function c_birth_death_llh_i_t(;position, t, combi_array)
                                    Deaths = combi_array[2][position, t, [22,23,24]])
 
   # [7]
-  return([c_dth_llh])
+  return(c_dth_llh)
 end
 
 
@@ -450,7 +448,7 @@ end
 
       llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
 
-      llh_array_new[pos, t, [7]] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, 7] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
 
       llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
 
@@ -485,7 +483,7 @@ end
   @inbounds @simd for pos in positions
     for t in t_start:t_end
 
-      llh_array_new[pos, t, [1]] = movements_total_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
+      llh_array_new[pos, t, 1] = movements_total_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
 
       llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
 
@@ -493,7 +491,7 @@ end
 
       llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
 
-      llh_array_new[pos, t, [7]] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, 7] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
 
       llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
 
@@ -567,7 +565,7 @@ end
     end
   end
 
-  return(llh_array_new, p_env_llh_array)
+  return(llh_array_new, p_env_llh_array_cur)
 end
 
 @views function update_llh_array_BBD(scope, llh_array_cur, combi_array, epi_params)

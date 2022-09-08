@@ -87,12 +87,12 @@ end
 function mult_mh_accept_ratio(post, post_prime, log_q_ratio, log_params_cur, log_params_draw)
   alpha =  (sum(log_params_draw) + post_prime) - (sum(log_params_cur) + post) + log_q_ratio
 
-  return( min(0, alpha) )
+  return( min(0., alpha) )
 end
 
 function mh_accept_ratio(post, post_prime, log_q_ratio)
 
-  log_α_ratio =  min( 0,  (post_prime) - (post) + log_q_ratio )
+  log_α_ratio =  min( 0.,  (post_prime) - (post) + log_q_ratio )
 
   return(log_α_ratio)
 end
@@ -111,9 +111,13 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
 
   # Propose an update
 
-  params_draw, log_q_ratio, mixture, λ, combi_array_prime, scope = proposal_func(N_its, res, other_res,
-                                                                                  it, params_cur, combi_array_cur, f_to_p_dict,
+  log_params_cur = log.(params_cur)
+
+  log_params_draw, log_q_ratio, mixture, λ, combi_array_prime, scope = proposal_func(N_its, res, other_res,
+                                                                                  it, log_params_cur, combi_array_cur, f_to_p_dict,
                                                                                   n_tune, m, λ, d, covarM)
+
+  params_draw = exp.(log_params_draw)
 
   # println("Proposed Params")
 
@@ -123,10 +127,9 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
                                # [is_accepted, log_α_ratio, post_cur, post_prime, reason]
   end
 
-
   # Update llh arrays
 
-  llh_array_prime, p_env_llh_array_prime = llh_update_func(scope, llh_array_cur, p_env_llh_array_cur, combi_array_cur, params_draw, f_to_p_dict)
+  llh_array_prime, p_env_llh_array_prime = llh_update_func(scope, llh_array_cur, p_env_llh_array_cur, combi_array_prime, params_draw, f_to_p_dict)
 
   # println("Updated llh")
 
@@ -136,11 +139,10 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
 
   post_prime = posterior_func(llh_array_prime, p_env_llh_array_prime, scope, log_prior_dists, params_draw)
 
-
   # println("Calculated posterior")
 
   # Calculate MH acceptance probability
-  log_α_ratio = mh_accept_ratio(post_cur, post_prime, log_q_ratio)
+  log_α_ratio = mult_mh_accept_ratio(post_cur, post_prime, log_q_ratio, log_params_cur, log_params_draw)
   is_accepted = false
   reason_ = 0
 
@@ -723,6 +725,10 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
           n_tune = n_tune + 1
         end
         it = it + 1
+
+        if it == 5000
+          it = 999999
+        end
 
     end #end of while
 

@@ -54,13 +54,17 @@ epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 ### Testing the Updaters ###
 ############################
 
-Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.001, 0.002, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
-                        ids_to_pos_dict = ids_to_pos_dict)
+r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 100000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
+                          combi_array = combi_array, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
+                          dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                          ids_to_pos_dict = ids_to_pos_dict)
 
-
+r1_cut = r1[1:4999, :]
+or1_cut = or1[1:4999, :]
+ar1_cut = ar1[1:4999, :]
+tr1_cut = tr1[1:4999, :]
+ut1_cut = ut1[1:4999, :]
 
 Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
                         combi_array = combi_array, moves_record = record_of_movements,

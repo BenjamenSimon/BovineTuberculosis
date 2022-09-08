@@ -685,7 +685,7 @@ function mixture_less(d, λ, params_cur)
   return(params_draw)
 end
 
-function mixture_more(it, results, covarM, m, params_cur)
+function mixture_more(covarM, m, params_cur)
 
   params_draw = rand(MvNormal(params_cur, ((m)^2 * cov(covarM)) ))
 
@@ -693,7 +693,7 @@ function mixture_more(it, results, covarM, m, params_cur)
 end
 
 function propose_params(N_its, results, other_res,
-                        it, params_cur, oi, accepted_idx,
+                        it, log_params_cur, oi, accepted_idx,
                         n_tune, m, λ, d, covarM)
 
   ##############################################
@@ -712,7 +712,7 @@ function propose_params(N_its, results, other_res,
         λ = tune_λ(λ, n_tune, other_res[:, accepted_idx])
       end
 
-      draw = mixture_less(3, λ, params_cur[oi])
+      draw = mixture_less(3, λ, log_params_cur[oi])
 
       mixture = 0
     end
@@ -728,22 +728,22 @@ function propose_params(N_its, results, other_res,
       ### Non-adaptive draw ###
 
       if mixture < 0.05
-        draw = mixture_less(d, λ, params_cur[oi])
+        draw = mixture_less(d, λ, log_params_cur[oi])
       end
 
       ### Adaptive Draw ###
 
       if mixture >= 0.05
-        draw = mixture_more(it, results[:, oi], covarM, m, params_cur[oi])
+        draw = mixture_more(covarM, m, log_params_cur[oi])
       end
 
     end
 
-    params_draw = deepcopy(params_cur)
-    params_draw[oi] = draw
+    log_params_draw = deepcopy(log_params_cur)
+    log_params_draw[oi] = draw
 
   #log_params_draw, log_q_ratio, mixture, λ
-  return(params_draw, 0, mixture, λ)
+  return(log_params_draw, 0, mixture, λ)
 end
 
 ###################################
@@ -751,15 +751,15 @@ end
 ###################################
 
 function propose_epidemic_params(N_its, results, other_res,
-                                  it, params_cur, combi_array_cur, f_to_p_dict,
+                                  it, log_params_cur, combi_array_cur, f_to_p_dict,
                                   n_tune, m, λ, d, covarM)
 
   ##########################
   ### Propose parameters ###
   ##########################
 
-    params_draw, log_q_ratio, mixture, λ = propose_params(N_its, results, other_res,
-                                                          it, params_cur, [1,2,3,4,5], 1,
+    log_params_draw, log_q_ratio, mixture, λ = propose_params(N_its, results, other_res,
+                                                          it, log_params_cur, [1,2,3,4,5], 1,
                                                           n_tune, m, λ, d, covarM)
 
   #######################
@@ -769,9 +769,9 @@ function propose_epidemic_params(N_its, results, other_res,
     scope = [1, 360, 1:size(combi_array_cur[1], 1), [3,4,8,9]]
     # lower_t, upper_t, h_pos_ids, h_element_range
 
-    combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, params_draw, f_to_p_dict, scope)
+    combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, log_params_draw, f_to_p_dict, scope)
 
-  return(params_draw, 0, mixture, λ, combi_array_prime, scope)
+  return(log_params_draw, 0, mixture, λ, combi_array_prime, scope)
 end
 
 ####################################
@@ -779,19 +779,19 @@ end
 ####################################
 
 function propose_detection_params(N_its, results, other_res,
-                                  it, params_cur, combi_array_cur, f_to_p_dict,
+                                  it, log_params_cur, combi_array_cur, f_to_p_dict,
                                   n_tune, m, λ, d, covarM)
 
   ##########################
   ### Propose parameters ###
   ##########################
 
-    params_draw, log_q_ratio, mixture, λ = propose_params(N_its, results, other_res,
-                                                          it, params_cur, [6,7], 5,
-                                                          n_tune, m, λ, d, covarM)
+    log_params_draw, log_q_ratio, mixture, λ = propose_params(N_its, results, other_res,
+                                                              it, log_params_cur, [6,7], 5,
+                                                              n_tune, m, λ, d, covarM)
 
     scope = [1, 360, 1:size(combi_array_cur[1], 1), [5,6]]
     # lower_t, upper_t, h_pos_ids, h_element_range
 
-  return(params_draw, 0, mixture, λ, combi_array_cur, scope)
+  return(log_params_draw, 0, mixture, λ, combi_array_cur, scope)
 end

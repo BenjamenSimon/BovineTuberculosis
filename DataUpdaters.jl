@@ -29,9 +29,10 @@ end
 ### Update the persistents after parameter draw ###
 ###################################################
 
-function update_pers_EPIDEMIC(combi_array_cur, epi_params_draw, f_to_p_dict, scope)
+function update_pers_EPIDEMIC(combi_array_cur, log_epi_params_draw, f_to_p_dict, scope)
 
   combi_array_prime = deepcopy(combi_array_cur)
+  epi_params_draw = exp.(log_epi_params_draw)
 
   t_start = 1
   t_end = size(combi_array_cur[1], 2)

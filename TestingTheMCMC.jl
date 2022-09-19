@@ -39,13 +39,22 @@ F_tr = 0.004
 
 epi_params_true = [β_c_tr, β_b_tr, γ_tr, F_tr, ϵ_tr, ρ_tr, ρ_E_tr, θ_bb_tr, θ_bd_tr]
 
-d_β_c = Uniform(0, 0.04)
-d_β_b = Uniform(0, 0.08)
-d_γ = Uniform(0, 0.3)
-d_F = Uniform(0, 0.08)
-d_ϵ = Uniform(0, 0.1)
-d_ρ = Uniform(0, 1)
-d_ρ_E = Uniform(0, 1)
+# d_β_c = Uniform(0, 0.04)
+# d_β_b = Uniform(0, 0.08)
+# d_γ = Uniform(0, 0.3)
+# d_F = Uniform(0, 0.08)
+# d_ϵ = Uniform(0, 0.1)
+# d_ρ = Uniform(0, 1)
+# d_ρ_E = Uniform(0, 1)
+
+d_β_c = Gamma(11, 0.0002)
+d_β_b = Gamma(21, 0.0002)
+d_γ = Gamma(21, 0.00075)
+d_F = Gamma(21, 0.0002)
+d_ϵ = Gamma(11, 0.005)
+d_ρ = Beta(2.5, 1.5)
+d_ρ_E = Beta(2, 5)
+
 
 epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 
@@ -54,23 +63,25 @@ epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 ### Testing the Updaters ###
 ############################
 
+# NOTE: MY LOG Q RATIOS ARE WRONG AGAIN - moving an SE event in time is not symmetric
+
 r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 100000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
                           combi_array = combi_array, moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
+                          params_init = epi_params_true, tuning = [0.03, 0.3, 0.4, 0.5],
                           dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
                           ids_to_pos_dict = ids_to_pos_dict)
 
-r1_cut = r1[1:4999, :]
-or1_cut = or1[1:4999, :]
-ar1_cut = ar1[1:4999, :]
-tr1_cut = tr1[1:4999, :]
-ut1_cut = ut1[1:4999, :]
+r1_cut = r1[1:5499, :]
+or1_cut = or1[1:5499, :]
+ar1_cut = ar1[1:5499, :]
+tr1_cut = tr1[1:5499, :]
+ut1_cut = ut1[1:5499, :]
 
-Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.03, 0.06],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
-                        ids_to_pos_dict = ids_to_pos_dict)
+r2, or2, ar2, tr2, ut2 = Blk_Adaptive_RWM_MCMC(;N_its = 55000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
+                          combi_array = combi_array, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.03, 0.03, 0.2, 0.04],
+                          dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                          ids_to_pos_dict = ids_to_pos_dict)
 
 
 

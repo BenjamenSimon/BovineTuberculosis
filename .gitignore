@@ -26,6 +26,7 @@ Manifest.toml
 
 Data
 Inference
+Visualisation
 Reports
 Caches
 workspace.jld

@@ -121,6 +121,10 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
 
   # println("Proposed Params")
 
+  if any(params_draw[6:7] .> 1)
+    log_q_ratio = -Inf
+  end    
+
   # Early return: Update is invalid
   if isfinite(log_q_ratio) == -Inf
     return(params_cur, llh_array_cur, p_env_llh_array_cur, combi_array_cur, [false, -Inf, post_cur, -Inf, 2], mixture, λ)
@@ -408,6 +412,17 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
 
     m_inf = tuning[2]
     m_det = tuning[4]
+
+  ###############
+  ### Transformation ###
+  ######################
+
+  array1 = Array{Int64, 3}(combi_array[1])
+  array2 = Array{Int64, 3}(combi_array[2])
+  array3 = Array{Float64, 3}(combi_array[3])
+  array4 = Array{Float64, 3}(combi_array[4])
+
+  combi_array = Union{Array{Int},Array{Float64}}[array1, array2, array3, array4]
 
   ##############################################
   ### Initialise the parameters and epidemic ###
@@ -726,9 +741,9 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
         end
         it = it + 1
 
-        if it == 5000
-          it = 999999
-        end
+        # if it == 5500
+        #   it = 999999
+        # end
 
     end #end of while
 

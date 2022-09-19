@@ -61,10 +61,20 @@ function propose_Move_SE(combi_array_cur, epi_params, f_to_p_dict)
     return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_SE_track)
   end
 
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_SE_events_at_t = size(farms_with_SE_events_at_t, 1)
+
+  num_farms_with_SE_events_at_t_prime = size(combi_array_prime[2][(combi_array_prime[2][:, :, 13] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_SE_events_at_t / num_farms_with_SE_events_at_t_prime)
+
+
   Move_SE_track = [position, t, 0, 0, Δ, 1]
                  # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
 
-  return(combi_array_prime, 0, scope, Move_SE_track)
+  return(combi_array_prime, log_q_ratio, scope, Move_SE_track)
 end
 
 
@@ -108,10 +118,20 @@ function propose_Move_EI(combi_array_cur, epi_params, f_to_p_dict)
     return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_EI_track)
   end
 
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_EI_events_at_t = size(farms_with_EI_events_at_t, 1)
+
+  num_farms_with_EI_events_at_t_prime = size(combi_array_prime[2][(combi_array_prime[2][:, :, 14] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_EI_events_at_t / num_farms_with_EI_events_at_t_prime)
+
+
   Move_EI_track = [position, t, 0, 0, Δ, 1]
                  # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
 
-  return(combi_array_prime, 0, scope, Move_EI_track)
+  return(combi_array_prime, log_q_ratio, scope, Move_EI_track)
 end
 
 
@@ -144,7 +164,17 @@ function propose_AddRem_SE(combi_array_cur, epi_params, f_to_p_dict)
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_SE_track)
   end
 
-  return(combi_array_prime, 0, scope, AddRem_SE_track)
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_S_and_exp_prob_at_t = size(farms_with_S_and_exp_prob_at_t, 1)
+
+  num_farms_with_S_and_exp_prob_at_t_prime = size(combi_array_prime[2][(combi_array_prime[1][:, :, 10] .> 0  .&& combi_array_prime[3][:, :, 4] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_S_and_exp_prob_at_t / num_farms_with_S_and_exp_prob_at_t_prime)
+
+
+  return(combi_array_prime, log_q_ratio, scope, AddRem_SE_track)
 end
 
 
@@ -178,7 +208,17 @@ function propose_AddRem_EI(combi_array_cur, epi_params, f_to_p_dict)
     return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_EI_track)
   end
 
-  return(combi_array_prime, 0, scope, AddRem_EI_track)
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_E_at_t = size(farms_with_E_at_t, 1)
+
+  num_farms_with_E_at_t_prime = size(combi_array_prime[2][(combi_array_prime[1][:, :, 11] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_E_at_t / num_farms_with_E_at_t_prime)
+
+
+  return(combi_array_prime, log_q_ratio, scope, AddRem_EI_track)
 end
 
 

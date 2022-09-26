@@ -40,6 +40,10 @@ chainplot3 = plot(chain_mix2)
 
 savefig(chainplot3, string("Visualisation/Test/", "InfPars", "_chain_post_tuning.pdf"))
 
+### PLOT SETTINGS ###
+
+Plots.scalefontsizes(3)
+
 ### AUXILARY ###
 
 post_plot1 = plot_inf_posterior_compare(or1, 1, 5000, string("Posterior Comparison Mixture 1"), :bottomright, 0.5)
@@ -74,9 +78,37 @@ acc_plot4 = plot_acc_rates_against_λ_and_m_inf(or1, tr1, 1, number_of_samples, 
 
 savefig(acc_plot4, string("Visualisation/Test/", "InfPars", "_batch_acceptance_rate_full.pdf"))
 
+
+### CORR AND MUTLI KDE PLOTS ###
+
+corr_plot1 = corrplot(Array(r1[:, 1:3]), label = ["β_c", "β_b", "γ"], fc = :thermal, ticks = true, size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(corr_plot1, string("Visualisation/Test/", "InfPars", "_Multi_Corr_bbg.pdf"))
+
+corr_plot2 = corrplot(Array(r1[:, [1,2,4]]), label = ["β_c", "β_b", "F"], fc = :thermal, ticks = true, size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(corr_plot2, string("Visualisation/Test/", "InfPars", "_Multi_Corr_bbf.pdf"))
+
+
+multi_kde_plot1 = @df r1[:, 1:3] cornerplot([:β_c, :β_b, :γ], label = ["β_c", "β_b", "γ"], size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(multi_kde_plot1, string("Visualisation/Test/", "InfPars", "_Multi_KDE_bbg.pdf"))
+
+multi_kde_plot2 = @df r1[:, [1,2,4]] cornerplot([:β_c, :β_b, :F], label = ["β_c", "β_b", "F"], size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(multi_kde_plot2, string("Visualisation/Test/", "InfPars", "_Multi_KDE_bbf.pdf"))
+
+
+### PLOT SETTINGS ###
+
+Plots.resetfontsizes()
+
+
 println(describe(r1[:, 1:5]))
 println(describe(or1))
 println(describe(tr1))
+
+
 
 
 #################################################
@@ -156,8 +188,31 @@ acc_plot4 = plot_acc_rates_against_λ_and_m_inf_scaled(or2, tr2, 1, number_of_sa
 
 savefig(acc_plot4, string("Visualisation/Test2/", "InfPars", "_batch_acceptance_rate_full.pdf"))
 
+
+### CORR AND MUTLI KDE PLOTS ###
+
+corr_plot1 = corrplot(Array(r1[:, 1:3]), label = ["β_c", "β_b", "γ"], fc = :thermal, ticks = true, size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(corr_plot1, string("Visualisation/Test2/", "InfPars", "_Multi_Corr_bbg.pdf"))
+
+corr_plot2 = corrplot(Array(r1[:, [1,2,4]]), label = ["β_c", "β_b", "F"], fc = :thermal, ticks = true, size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(corr_plot2, string("Visualisation/Test2/", "InfPars", "_Multi_Corr_bbf.pdf"))
+
+
+multi_kde_plot1 = @df r1[:, 1:3] cornerplot([:β_c, :β_b, :γ], label = ["β_c", "β_b", "γ"], size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(multi_kde_plot1, string("Visualisation/Test2/", "InfPars", "_Multi_KDE_bbg.pdf"))
+
+multi_kde_plot2 = @df r1[:, [1,2,4]] cornerplot([:β_c, :β_b, :F], label = ["β_c", "β_b", "F"], size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+savefig(multi_kde_plot2, string("Visualisation/Test2/", "InfPars", "_Multi_KDE_bbf.pdf"))
+
+
 println(describe(r2[:, 1:5]))
 println(describe(or2))
 println(describe(tr2))
+
+### PLOT SETTINGS ###
 
 Plots.resetfontsizes()

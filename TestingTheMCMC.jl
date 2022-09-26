@@ -63,11 +63,9 @@ epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 ### Testing the Updaters ###
 ############################
 
-# NOTE: MY LOG Q RATIOS ARE WRONG AGAIN - moving an SE event in time is not symmetric
-
 r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 100000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
                           combi_array = combi_array, moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.03, 0.3, 0.4, 0.5],
+                          params_init = epi_params_true, tuning = [0.03, 0.3, 45, 0.5],
                           dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
                           ids_to_pos_dict = ids_to_pos_dict)
 
@@ -164,4 +162,27 @@ using ProfileView
 
 @profview begin
 
+  r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
+                            combi_array = combi_array, moves_record = record_of_movements,
+                            params_init = epi_params_true, tuning = [0.03, 0.3, 45, 0.5],
+                            dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                            ids_to_pos_dict = ids_to_pos_dict)
+
 end
+
+
+#######################################################################################
+#######################################################################################
+
+################################################
+### Building a test to check LLH calculation ###
+################################################
+
+β_c_tr = 0.002
+β_b_tr = 0.004
+γ_tr = 0.015
+
+F_tr = 0.004
+ϵ_tr = 0.05
+
+par_init = [0.002, 0.004, 0.015, 0.004, 0.005]

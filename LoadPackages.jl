@@ -18,6 +18,9 @@ using Pkg
 # Pkg.add("Measures") # for plot specifications
 # Pkg.add("StatsPlots")
 # Pkg.add("BenchmarkTools")
+# Pkg.add("KernelDensity")
+# Pkg.add("StatsBase")
+
 
 
 using LinearAlgebra
@@ -35,5 +38,8 @@ using ProgressMeter
 using OnlineStats # Covariance Matrix Calc
 using MCMCChains
 using Measures # for plot specifications
+using StatsBase
 using StatsPlots; gr()
 using BenchmarkTools
+using KernelDensity
+import StatsPlots: cornerplot, cornerplot!

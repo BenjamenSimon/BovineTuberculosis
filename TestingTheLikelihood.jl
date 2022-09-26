@@ -1,5 +1,39 @@
 
+include("LoadPackages.jl")
 include("Likelihood.jl")
+
+#################
+### LOAD DATA ###
+#################
+
+combi_array = load("Data/Set 1/combi_array.jld2")["array"]
+
+f_to_p_dict = load("Data/Set 1/f_to_p_dict.jld2")["dict"]
+
+record_of_movements = load("Data/Set 1/record_of_movements_oi.jld2")["array"]
+
+dict_of_movements = load("Data/Set 1/dict_of_movements.jld2")["dict"]
+
+ids_to_pos_dict = load("Data/Set 1/ids_to_pos_dict.jld2")["dict"]
+
+###########
+### RUN ###
+###########
+
+β_c_tr = 0.002
+β_b_tr = 0.004
+γ_tr = 0.015
+
+F_tr = 0.004
+ϵ_tr = 0.05
+
+ρ_tr = 0.75
+ρ_E_tr = 0.2
+
+θ_bb_tr = 0.25/52
+θ_bd_tr = 0.25/52
+
+epi_params_true = [β_c_tr, β_b_tr, γ_tr, F_tr, ϵ_tr, ρ_tr, ρ_E_tr, θ_bb_tr, θ_bd_tr]
 
 #########################################
 ### Constructing the likelihood array ###
@@ -154,4 +188,144 @@ using ProfileView
 
 @profview begin
   update_llh_array_ALL(scope, llh_array, p_env_llh_array, combi_array, record_of_movements, epi_params_true, dict_of_movements)
+end
+
+
+
+
+############################################################
+### Profiling the infection process parameter components ###
+############################################################
+
+BenchmarkTools.DEFAULT_PARAMETERS.seconds = 600
+BenchmarkTools.DEFAULT_PARAMETERS.samples = 10000
+
+scope = [1, 360, 1:size(combi_array[1], 1), [3,4,8,9]]
+
+### With simd macro
+
+llh_array = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
+
+@benchmark begin
+  update_llh_array_EPIDEMIC(scope, llh_array, p_env_llh_array, combi_array, epi_params_true, f_to_p_dict)
+end
+
+# Range (min … max):  568.829 ms …   1.136 s  ┊ GC (min … max): 2.80% … 2.78%
+# Time  (median):     600.062 ms              ┊ GC (median):    2.78%
+# Time  (mean ± σ):   625.868 ms ± 73.789 ms  ┊ GC (mean ± σ):  3.38% ± 1.12%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453352.
+
+# Range (min … max):  555.873 ms … 813.649 ms  ┊ GC (min … max): 2.82% … 3.11%
+# Time  (median):     575.547 ms               ┊ GC (median):    2.79%
+# Time  (mean ± σ):   587.611 ms ±  37.675 ms  ┊ GC (mean ± σ):  3.42% ± 1.14%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453352.
+
+# Range (min … max):  554.967 ms … 609.033 ms  ┊ GC (min … max): 2.80% … 2.83%
+# Time  (median):     568.087 ms               ┊ GC (median):    2.82%
+# Time  (mean ± σ):   570.999 ms ±   8.830 ms  ┊ GC (mean ± σ):  3.43% ± 1.12%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453352.
+
+# Range (min … max):  555.009 ms … 816.497 ms  ┊ GC (min … max): 2.84% … 4.69%
+# Time  (median):     578.012 ms               ┊ GC (median):    2.78%
+# Time  (mean ± σ):   582.758 ms ±  21.902 ms  ┊ GC (mean ± σ):  3.39% ± 1.12%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453352.
+
+### Without simd macro
+
+llh_array = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
+
+@benchmark begin
+  update_llh_array_EPIDEMIC(scope, llh_array, p_env_llh_array, combi_array, epi_params_true, f_to_p_dict)
+end
+
+# Range (min … max):  559.294 ms … 667.230 ms  ┊ GC (min … max): 2.78% … 5.50%
+# Time  (median):     578.001 ms               ┊ GC (median):    2.72%
+# Time  (mean ± σ):   580.698 ms ±  12.198 ms  ┊ GC (mean ± σ):  3.34% ± 1.11%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453460.
+
+# Range (min … max):  609.629 ms … 997.158 ms  ┊ GC (min … max): 2.68% … 4.80%
+# Time  (median):     780.922 ms               ┊ GC (median):    2.71%
+# Time  (mean ± σ):   765.492 ms ±  68.692 ms  ┊ GC (mean ± σ):  3.28% ± 1.12%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453460.
+
+# Range (min … max):  639.210 ms …   1.018 s  ┊ GC (min … max): 2.61% … 3.51%
+# Time  (median):     799.836 ms              ┊ GC (median):    2.73%
+# Time  (mean ± σ):   804.944 ms ± 35.219 ms  ┊ GC (mean ± σ):  3.27% ± 1.11%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453460.
+
+# Range (min … max):  730.403 ms …    1.431 s  ┊ GC (min … max): 2.64% … 2.92%
+# Time  (median):     854.116 ms               ┊ GC (median):    2.78%
+# Time  (mean ± σ):   903.513 ms ± 122.074 ms  ┊ GC (mean ± σ):  3.17% ± 1.09%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453460.
+
+using ProfileView
+
+array1 = Array{Int64, 3}(combi_array[1])
+array2 = Array{Int64, 3}(combi_array[2])
+array3 = Array{Float64, 3}(combi_array[3])
+array4 = Array{Float64, 3}(combi_array[4])
+
+combi_array = Union{Array{Int},Array{Float64}}[array1, array2, array3, array4]
+
+scope = [1, 360, 1:size(combi_array[1], 1), [3,4,8,9]]
+
+llh_array = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
+
+@profview begin
+  update_llh_array_EPIDEMIC(scope, llh_array, p_env_llh_array, combi_array, epi_params_true, f_to_p_dict)
+end
+
+@profview begin
+  for i in 1:10000
+    exposures_llh_i_t(;position = 1, t = 100, combi_array)
+  end
+end
+
+@profview begin
+  for i in 1:10000
+    infections_llh_i_t(;position = 1, t = 100, combi_array)
+  end
+end
+
+@profview begin
+  for i in 1:10000
+    p_env_llh_k_t(;p_position = 1, t = 100, combi_array, epi_params = epi_params_true)
+  end
+end
+
+@profview begin
+  position = 1
+  t = 100
+  for i in 1:10000
+    combi_array[1][position, t, [10,11,12]]
+    combi_array[2][position, t, [13,14]]
+    combi_array[3][position, t, 4]
+
+    exposures(States_postM = combi_array[1][position, t, [10,11,12]],
+                             new_EandI = combi_array[2][position, t, [13,14]],
+                              exp_prob = combi_array[3][position, t, 4])
+  end
+end
+
+@profview begin
+  position = 1
+  t = 100
+  for i in 1:10000
+    exposures(States_postM = combi_array[1][position, t, [10,11,12]],
+                             new_EandI = combi_array[2][position, t, [13,14]],
+                              exp_prob = combi_array[3][position, t, 4])
+  end
+end
+
+@profview begin
+  position = 1
+  t = 100
+  for i in 1:10000
+    exposures(States_postM = combi_array[1][position, t, [10,11,12]],
+                             new_EandI = combi_array[2][position, t, [13,14]],
+                              exp_prob = combi_array[3][position, t, 4])
+  end
 end

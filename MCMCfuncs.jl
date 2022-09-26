@@ -123,10 +123,10 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
 
   if any(params_draw[6:7] .> 1)
     log_q_ratio = -Inf
-  end    
+  end
 
   # Early return: Update is invalid
-  if isfinite(log_q_ratio) == -Inf
+  if log_q_ratio == -Inf
     return(params_cur, llh_array_cur, p_env_llh_array_cur, combi_array_cur, [false, -Inf, post_cur, -Inf, 2], mixture, λ)
                                # [is_accepted, log_α_ratio, post_cur, post_prime, reason]
   end

@@ -9,7 +9,7 @@ function calc_exp_prop(;States_init, p_env_prev, β, F)
   N = sum(States_init)
 
   if N > 0
-    exp_prob = 1 - exp(- I/N * β - F * p_env_prev)
+    exp_prob = 1 - exp(- (I/N) * β - F * p_env_prev)
   else
     exp_prob = 0
   end

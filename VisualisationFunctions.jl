@@ -153,3 +153,89 @@ function plot_hist(res, from, to, num_bins)
 
   plot(p1, p2, p3, layout = l)
 end
+
+
+#### HACKED MULTI PLOT ####
+
+@userplot CornerPlot
+@recipe function f(cp::CornerPlot)
+    m = cp.args[1]
+
+    nl = get(plotattributes, :levels, 10)
+    N = size(m, 1)
+
+    labs = pop!(plotattributes, :label, ["x$i" for i=1:N])
+    if labs!=[""] && length(labs)!=N
+        error("Number of labels not identical to number of datasets")
+    end
+
+    legend := false
+    layout := (N,N)
+
+    for i in 1:N
+        # Do the diagonals
+        @series begin
+            subplot := i + (i-1)*N
+            seriestype := :density
+            xlims := (minimum(m[i]), maximum(m[i]))
+            ylims := (0, Inf)
+            xguide := labs[i]
+            x := m[i]
+        end
+    end
+
+    for i in 1:N
+        for j in 1:(i-1)
+            # Do the kdeplots
+            k = kde((m[j], m[i]))
+            dv = vec(k.density)
+            inds = reverse(sortperm(dv))
+            cd = cumsum(dv[inds])
+            C = cd[end]
+
+            levels = []
+            for i in 1:nl
+                f = i/(nl+1)
+                cf = f*C
+                ind = searchsortedfirst(cd, cf)
+                push!(levels, dv[inds[ind]])
+            end
+            levels = reverse(levels)
+
+            @series begin
+                seriestype := :contour
+                subplot := (i-1)*N + j
+                seriescolor --> :viridis
+                x := k.x
+                y := k.x
+                z := permutedims(k.density)
+                levels := levels
+                #xlims := (minimum(m[j]), maximum(m[j]))
+                #ylims := (minimum(m[i]), maximum(m[i]))
+                xlims := (minimum(m[j]), quantile(m[j], [0.95])[1])
+                ylims := (minimum(m[i]), quantile(m[i], [0.95])[1])
+                xguide := labs[j]
+                yguide := labs[i]
+                k.x, k.y, permutedims(k.density)
+            end
+        end
+    end
+
+    for i in 1:N
+        for j in (i+1):N
+            # Do the scatterplots
+            @series begin
+                seriestype := scatter
+                subplot := (i-1)*N + j
+                x := m[j]
+                y := m[i]
+                markersize --> 0.1
+                xlims := (minimum(m[j]), maximum(m[j]))
+                ylims := (minimum(m[i]), maximum(m[i]))
+                xguide := labs[j]
+                yguide := labs[i]
+                m[j], m[i]
+            end
+        end
+    end
+end

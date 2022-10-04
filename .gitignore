@@ -30,3 +30,4 @@ Visualisation
 Reports
 Caches
 workspace.jld
+*.pb.gz

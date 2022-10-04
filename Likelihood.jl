@@ -252,7 +252,7 @@ function movements_llh_i_t(;position, t, combi_array, movement_records, movement
   # Probability of moving animal states to each farm of animals moved off
   indv_moves_off_llh = 0.
 
-  @inbounds @simd for j in 1:size(movement_records_i_t, 1)
+  @inbounds for j in 1:size(movement_records_i_t, 1)
 
     indv_moves_off_llh += moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
                                            Moves = movement_records_i_t[j, 7:9])
@@ -437,7 +437,7 @@ end
 
   parishes_to_update = Int64[]
 
-  @inbounds @simd for pos in positions
+  @inbounds for pos in positions
     for t in t_start:t_end
 
       llh_array_new[pos, t, [1,2]] = movements_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
@@ -458,7 +458,7 @@ end
     push!(parishes_to_update, f_to_p_dict[pos][2])
   end
 
-  @inbounds @simd for p_pos in parishes_to_update
+  @inbounds for p_pos in parishes_to_update
     for t in t_start:t_end
 
       p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
@@ -480,7 +480,7 @@ end
 
   parishes_to_update = Int64[]
 
-  @inbounds @simd for pos in positions
+  @inbounds for pos in positions
     for t in t_start:t_end
 
       llh_array_new[pos, t, 1] = movements_total_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
@@ -501,7 +501,7 @@ end
     push!(parishes_to_update, f_to_p_dict[pos][2])
   end
 
-  @inbounds @simd for p_pos in parishes_to_update
+  @inbounds for p_pos in parishes_to_update
     for t in t_start:t_end
 
       p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
@@ -523,7 +523,7 @@ end
 
   parishes_to_update = Int64[]
 
-  @inbounds @simd for pos in positions
+  @inbounds for pos in positions
     for t in t_start:t_end
 
       llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
@@ -536,7 +536,7 @@ end
     push!(parishes_to_update, f_to_p_dict[pos][2])
   end
 
-  @inbounds @simd for p_pos in parishes_to_update
+  @inbounds for p_pos in parishes_to_update
     for t in t_start:t_end
 
       p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
@@ -557,7 +557,7 @@ end
 
   parishes_to_update = Int64[]
 
-  @inbounds @simd for pos in positions
+  @inbounds for pos in positions
     for t in t_start:t_end
 
       llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
@@ -579,7 +579,7 @@ end
 
   parishes_to_update = Int64[]
 
-  @inbounds @simd for pos in positions
+  @inbounds for pos in positions
     for t in t_start:t_end
 
       llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)

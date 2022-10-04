@@ -90,6 +90,201 @@ calc_llh_h(scope, llh_array_cur)
 calc_llh_h_and_p(scope, llh_array_cur, p_env_llh_array_cur)
 
 
+#######################
+### Checking values ###
+#######################
+
+scope = [1, 360, 1:size(combi_array[1], 1), 1:13]
+
+### ~~~~~~~ 1. ~~~~~~~ ###
+
+ep1 = [0.002, 0.004, 0.015, 0.004, 0.05, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_1 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_1 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 1. ~~~~~~~")
+println("the sum of LLH null pre = ", sum(llh_array_1))
+println("the sum of penv LLH null pre = ", sum(p_env_llh_array_1))
+
+llh_array_prime_1, p_env_llh_array_prime_1 = update_llh_array_ALL(scope, llh_array_1, p_env_llh_array_1, combi_array, record_of_movements, ep1, dict_of_movements, f_to_p_dict)
+
+println("the sum of LLH null post = ", sum(llh_array_1))
+println("the sum of penv LLH null post = ", sum(p_env_llh_array_1))
+
+println("the sum of LLH prime = ", sum(llh_array_prime_1))
+println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_1))
+
+### ~~~~~~~ 3. ~~~~~~~ ###
+
+include("DataUpdaters.jl")
+ep3 = [0.002, 0.004, 0.015, 0.004, 0.05, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_3 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_3 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 3. ~~~~~~~")
+println("the sum of LLH null pre = ", sum(llh_array_3))
+println("the sum of penv LLH null pre = ", sum(p_env_llh_array_3))
+
+combi_array_prime_3 = update_pers_EPIDEMIC(combi_array, log.(ep3), f_to_p_dict, scope)
+
+llh_array_prime_3, p_env_llh_array_prime_3 = update_llh_array_ALL(scope, llh_array_3, p_env_llh_array_3, combi_array_prime_3, record_of_movements, ep3, dict_of_movements, f_to_p_dict)
+
+println("the sum of LLH null post = ", sum(llh_array_3))
+println("the sum of penv LLH null post = ", sum(p_env_llh_array_3))
+
+println("the sum of LLH prime = ", sum(llh_array_prime_3))
+println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_3))
+
+println("the sum of the p_exp and p_inf before is = ", sum(combi_array[3][:, :, [4,5,6,7]]))
+println("the sum of the p_exp and p_inf after is = ", sum(combi_array_prime_3[3][:, :, [4,5,6,7]]))
+println("which before breaks down into c_exp_prob = ", sum(combi_array[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array[3][:, :, [7]]))
+println("which after  breaks down into c_exp_prob = ", sum(combi_array_prime_3[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array_prime_3[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array_prime_3[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array_prime_3[3][:, :, [7]]))
+
+combi_array_prime_3 = update_pers_EPIDEMIC(combi_array_prime_3, log.(ep3), f_to_p_dict, scope)
+
+llh_array_prime_3, p_env_llh_array_prime_3 = update_llh_array_ALL(scope, llh_array_3, p_env_llh_array_3, combi_array_prime_3, record_of_movements, ep3, dict_of_movements, f_to_p_dict)
+
+println("the sum of LLH null post = ", sum(llh_array_3))
+println("the sum of penv LLH null post = ", sum(p_env_llh_array_3))
+
+println("the sum of LLH prime = ", sum(llh_array_prime_3))
+println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_3))
+
+println("the sum of the p_exp and p_inf before is = ", sum(combi_array[3][:, :, [4,5,6,7]]))
+println("the sum of the p_exp and p_inf after is = ", sum(combi_array_prime_3[3][:, :, [4,5,6,7]]))
+println("which before breaks down into c_exp_prob = ", sum(combi_array[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array[3][:, :, [7]]))
+println("which after  breaks down into c_exp_prob = ", sum(combi_array_prime_3[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array_prime_3[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array_prime_3[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array_prime_3[3][:, :, [7]]))
+
+#######################
+### Checking values ###
+#######################
+
+scope = [1, 360, 1:size(combi_array[1], 1), 1:13]
+
+ep1 = [0.002, 0.004, 0.015, 0.004, 0.05, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_1 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_1 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 1. ~~~~~~~")
+println("the sum of LLH null pre = ", sum(llh_array_1))
+println("the sum of penv LLH null pre = ", sum(p_env_llh_array_1))
+
+llh_array_prime_1, p_env_llh_array_prime_1 = update_llh_array_ALL(scope, llh_array_1, p_env_llh_array_1, combi_array, record_of_movements, ep1, dict_of_movements, f_to_p_dict)
+
+println("the sum of LLH null post = ", sum(llh_array_1))
+println("the sum of penv LLH null post = ", sum(p_env_llh_array_1))
+
+println("the sum of LLH prime = ", sum(llh_array_prime_1))
+println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_1))
+
+
+
+ep2 = [0.002041307650203201, 0.003953796422198999, 0.014898734975778802, 0.00399454576769233, 0.04925481068027904, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_2 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_2 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 2. ~~~~~~~")
+  println("the sum of LLH null pre = ", sum(llh_array_2))
+  println("the sum of penv LLH null pre = ", sum(p_env_llh_array_2))
+
+  llh_array_prime_2, p_env_llh_array_prime_2 = update_llh_array_ALL(scope, llh_array_2, p_env_llh_array_2, combi_array, record_of_movements, ep2, dict_of_movements, f_to_p_dict)
+
+  println("the sum of LLH null post = ", sum(llh_array_2))
+  println("the sum of penv LLH null post = ", sum(p_env_llh_array_2))
+
+  println("the sum of LLH prime = ", sum(llh_array_prime_2))
+  println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_2))
+
+
+
+include("DataUpdaters.jl")
+ep3 = [0.002041307650203201, 0.003953796422198999, 0.014898734975778802, 0.00399454576769233, 0.04925481068027904, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_3 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_3 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 3. ~~~~~~~")
+  println("the sum of LLH null pre = ", sum(llh_array_3))
+  println("the sum of penv LLH null pre = ", sum(p_env_llh_array_3))
+
+  combi_array_prime_3 = update_pers_EPIDEMIC(combi_array, log.(ep3), f_to_p_dict, scope)
+
+  llh_array_prime_3, p_env_llh_array_prime_3 = update_llh_array_ALL(scope, llh_array_3, p_env_llh_array_3, combi_array_prime_3, record_of_movements, ep3, dict_of_movements, f_to_p_dict)
+
+  println("the sum of LLH null post = ", sum(llh_array_3))
+  println("the sum of penv LLH null post = ", sum(p_env_llh_array_3))
+
+  println("the sum of LLH prime = ", sum(llh_array_prime_3))
+  println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_3))
+
+  println("the sum of the p_exp and p_inf before is = ", sum(combi_array[3][:, :, [4,5,6,7]]))
+  println("the sum of the p_exp and p_inf after is = ", sum(combi_array_prime_3[3][:, :, [4,5,6,7]]))
+  println("which before breaks down into c_exp_prob = ", sum(combi_array[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array[3][:, :, [7]]))
+  println("which after  breaks down into c_exp_prob = ", sum(combi_array_prime_3[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array_prime_3[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array_prime_3[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array_prime_3[3][:, :, [7]]))
+
+  combi_array_prime_3 = update_pers_EPIDEMIC(combi_array_prime_3, log.(ep3), f_to_p_dict, scope)
+
+  llh_array_prime_3, p_env_llh_array_prime_3 = update_llh_array_ALL(scope, llh_array_3, p_env_llh_array_3, combi_array_prime_3, record_of_movements, ep3, dict_of_movements, f_to_p_dict)
+
+  println("the sum of LLH null post = ", sum(llh_array_3))
+  println("the sum of penv LLH null post = ", sum(p_env_llh_array_3))
+
+  println("the sum of LLH prime = ", sum(llh_array_prime_3))
+  println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_3))
+
+  println("the sum of the p_exp and p_inf before is = ", sum(combi_array[3][:, :, [4,5,6,7]]))
+  println("the sum of the p_exp and p_inf after is = ", sum(combi_array_prime_3[3][:, :, [4,5,6,7]]))
+  println("which before breaks down into c_exp_prob = ", sum(combi_array[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array[3][:, :, [7]]))
+  println("which after  breaks down into c_exp_prob = ", sum(combi_array_prime_3[3][:, :, [4]]), " b_exp_prob = ", sum(combi_array_prime_3[3][:, :, [5]]), " c_inf_prob = ", sum(combi_array_prime_3[3][:, :, [6]]), " b_inf_prob = ", sum(combi_array_prime_3[3][:, :, [7]]))
+
+
+
+
+ep4 = [0.002, 0.004, 0.015, 0.004, 0.05, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_4 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_4 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 4. ~~~~~~~")
+println("the sum of LLH null pre = ", sum(llh_array_4))
+println("the sum of penv LLH null pre = ", sum(p_env_llh_array_4))
+
+combi_array_prime_4 = update_pers_EPIDEMIC(combi_array, log.(ep4), f_to_p_dict, scope)
+
+llh_array_prime_4, p_env_llh_array_prime_4 = update_llh_array_ALL(scope, llh_array_4, p_env_llh_array_4, combi_array_prime_4, record_of_movements, ep4, dict_of_movements, f_to_p_dict)
+
+println("the sum of LLH null post = ", sum(llh_array_4))
+println("the sum of penv LLH null post = ", sum(p_env_llh_array_4))
+
+println("the sum of LLH prime = ", sum(llh_array_prime_4))
+println("the sum of LLH prime [3,4,8,9] = ", sum(llh_array_prime_4[:,:,[3,4,8,9]]))
+println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_4))
+
+
+
+ep5 = [0.002, 0.004, 0.015, 0.004, 0.05, 0.75, 0.2, 0.0048076923, 0.0048076923]
+
+llh_array_5 = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array_5 = zeros(size(combi_array[4], 1), 360, 2)
+
+println("~~~~~~~ 5. ~~~~~~~")
+println("the sum of LLH null pre = ", sum(llh_array_5))
+println("the sum of penv LLH null pre = ", sum(p_env_llh_array_5))
+
+combi_array_prime_5 = update_pers_EPIDEMIC(combi_array, log.(ep5), f_to_p_dict, scope)
+
+llh_array_prime_5, p_env_llh_array_prime_5 = update_llh_array_EPIDEMIC(scope, llh_array_5, p_env_llh_array_5, combi_array_prime_5, ep5, f_to_p_dict)
+
+println("the sum of LLH null post = ", sum(llh_array_5))
+println("the sum of penv LLH null post = ", sum(p_env_llh_array_5))
+
+println("the sum of LLH prime [3,4,8,9] = ", sum(llh_array_prime_5))
+println("the sum of penv LLH prime = ", sum(p_env_llh_array_prime_5))
+
 
 ###################################
 ### Benchmarking the likelihood ###
@@ -260,6 +455,11 @@ end
 # Time  (mean ± σ):   903.513 ms ± 122.074 ms  ┊ GC (mean ± σ):  3.17% ± 1.09%
 # Memory estimate: 143.45 MiB, allocs estimate: 3453460.
 
+# Range (min … max):  665.320 ms … 763.391 ms  ┊ GC (min … max): 2.30% … 4.60%
+# Time  (median):     701.870 ms               ┊ GC (median):    2.26%
+# Time  (mean ± σ):   699.618 ms ±  16.495 ms  ┊ GC (mean ± σ):  2.81% ± 0.94%
+# Memory estimate: 143.45 MiB, allocs estimate: 3453460.
+
 using ProfileView
 
 array1 = Array{Int64, 3}(combi_array[1])
@@ -329,3 +529,13 @@ end
                               exp_prob = combi_array[3][position, t, 4])
   end
 end
+
+
+using Profile
+using PProf
+
+# collect a profile
+@profile update_llh_array_EPIDEMIC(scope, llh_array, p_env_llh_array, combi_array, epi_params_true, f_to_p_dict)
+
+# Export pprof profile and open interactive profiling web interface.
+pprof()

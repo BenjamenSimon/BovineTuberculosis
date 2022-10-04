@@ -132,7 +132,6 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
   end
 
   # Update llh arrays
-
   llh_array_prime, p_env_llh_array_prime = llh_update_func(scope, llh_array_cur, p_env_llh_array_cur, combi_array_prime, params_draw, f_to_p_dict)
 
   # println("Updated llh")
@@ -375,7 +374,7 @@ function Initialise(combi_array_cur, epi_params_true, epi_params_dists, record_o
 
     # Update the probabilities
 
-    combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, epi_params_draw, f_to_p_dict, scope_init)
+    combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, log.(epi_params_draw), f_to_p_dict, scope_init)
 
     #Calculate the log-likelihood
 
@@ -407,11 +406,11 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
   ### Extraction ###
   ##################
 
-    λ_inf = tuning[1]
-    λ_det = tuning[3]
-
-    m_inf = tuning[2]
-    m_det = tuning[4]
+  λ_inf = tuning[1]
+  m_inf = tuning[2]
+  
+  λ_det = tuning[3]
+  m_det = tuning[4]
 
   ###############
   ### Transformation ###
@@ -468,7 +467,6 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                             combi_array_cur, record_of_movements,
                                                             params_cur, dict_of_movements, f_to_p_dict)
 
-
   ###########################
   ### ~~ THE ALGORITHM ~~ ###
   ###########################
@@ -479,8 +477,6 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                         barlen=10)
 
     while it <= N_its
-
-      # println(" ", "it = ", it)
 
       #######################################
       ### MH step for Epidemic parameters ###

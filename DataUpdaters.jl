@@ -45,14 +45,14 @@ function update_pers_EPIDEMIC(combi_array_cur, log_epi_params_draw, f_to_p_dict,
       # Update Cattle Exposure Probability
 
       combi_array_prime[3][pos, t, 4] = calc_exp_prop(;States_init = combi_array_prime[1][pos, t, 4:6],
-                                                       p_env_prev = combi_array_prime[4][f_to_p_dict[pos][2]],
+                                                       p_env_prev = combi_array_prime[4][f_to_p_dict[pos][2], t, 19],
                                                        β = epi_params_draw[1],
                                                        F = epi_params_draw[4])
 
       # Update Badger Exposure Probability
 
       combi_array_prime[3][pos, t, 5] = calc_exp_prop(;States_init = combi_array_prime[1][pos, t, 22:24],
-                                                       p_env_prev = combi_array_prime[4][f_to_p_dict[pos][2]],
+                                                       p_env_prev = combi_array_prime[4][f_to_p_dict[pos][2], t, 19],
                                                        β = epi_params_draw[2],
                                                        F = epi_params_draw[4])
 
@@ -71,10 +71,6 @@ function update_pers_EPIDEMIC(combi_array_cur, log_epi_params_draw, f_to_p_dict,
   return(combi_array_prime)
 end
 
-# combi_array[4][f_to_p_dict[combi_array[1][1,1,2]][2]]
-#
-# combi_array[4][Int64(f_to_p_dict[1][2])]
-
 function update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, scope)
 
   t_start = scope[1]
@@ -88,7 +84,7 @@ function update_cattle_pers_general(combi_array_prime, epi_params, f_to_p_dict, 
       # Update Cattle Exposure Probability
 
       combi_array_prime[3][pos, t, 4] = calc_exp_prop(;States_init = combi_array_prime[1][pos, t, 4:6],
-                                                       p_env_prev = combi_array_prime[4][f_to_p_dict[pos][2]],
+                                                       p_env_prev = combi_array_prime[4][f_to_p_dict[pos][2], t, 19],
                                                        β = epi_params[1],
                                                        F = epi_params[4])
 

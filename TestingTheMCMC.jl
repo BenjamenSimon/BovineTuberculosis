@@ -158,21 +158,21 @@ end
 
 
 
+##########################
+### Profiling function ###
+##########################
+
 using ProfileView
 
-@profview begin
-
-  r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
+@profview Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
                             combi_array = combi_array, moves_record = record_of_movements,
-                            params_init = epi_params_true, tuning = [0.03, 0.3, 45, 0.5],
+                            params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
                             dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
                             ids_to_pos_dict = ids_to_pos_dict)
 
-end
+warntype_last()
 
-
-#######################################################################################
-#######################################################################################
+ProfileView.view(nothing)
 
 ##############################
 ### New profiling function ###
@@ -184,14 +184,14 @@ using PProf
 # collect a profile
 @profile Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
                           combi_array = combi_array, moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.03, 0.3, 45, 0.5],
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
                           dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
                           ids_to_pos_dict = ids_to_pos_dict)
 
 # Export pprof profile and open interactive profiling web interface.
 pprof()
 
-https://github.com/JuliaPerf/PProf.jl
-https://github.com/google/pprof/blob/main/doc/README.md
+# https://github.com/JuliaPerf/PProf.jl
+# https://github.com/google/pprof/blob/main/doc/README.md
 
 PProf.refresh(file="profile (MCMCinf).pb.gz")

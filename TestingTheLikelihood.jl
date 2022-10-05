@@ -531,6 +531,34 @@ end
 end
 
 
+
+
+###########################
+### Profiling Functions ###
+###########################
+
+array1 = Array{Int64, 3}(combi_array[1])
+array2 = Array{Int64, 3}(combi_array[2])
+array3 = Array{Float64, 3}(combi_array[3])
+array4 = Array{Float64, 3}(combi_array[4])
+
+combi_array = Union{Array{Int},Array{Float64}}[array1, array2, array3, array4]
+
+scope = [1, 360, 1:size(combi_array[1], 1), [3,4,8,9]]
+
+llh_array = zeros(size(combi_array[1], 1), 360, 13)
+p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
+
+
+using ProfileView
+
+@profview update_llh_array_EPIDEMIC(scope, llh_array, p_env_llh_array, combi_array, epi_params_true, f_to_p_dict)
+
+warntype_last()
+
+ProfileView.view(nothing)
+
+
 using Profile
 using PProf
 

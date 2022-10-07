@@ -1,4 +1,18 @@
 
+#######################
+### Data Structures ###
+#######################
+
+struct Scope
+  t_start::Int64
+  t_end::Int64
+  h_positions::UnitRange{Int64}
+  h_llh_indices::Vector{Int64}
+end
+
+# scope = Scope(1, 360, 1:size(combi_array[1], 1), [3,4,8,9])
+# scope.t_start
+
 ################################################
 ### Multivariate Hypergeometric pdf function ###
 ################################################
@@ -426,11 +440,11 @@ end
 ### Update LLH Array Functions ###
 ##################################
 
-@views function update_llh_array_ALL(scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
+@views function update_llh_array_ALL(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
 
-  t_start = scope[1]
-  t_end = scope[2]
-  positions = scope[3]
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
 
   llh_array_new = deepcopy(llh_array_cur)
   p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
@@ -469,11 +483,11 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_ALL_excindvmoves(scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
+@views function update_llh_array_ALL_excindvmoves(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
 
-  t_start = scope[1]
-  t_end = scope[2]
-  positions = scope[3]
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
 
   llh_array_new = deepcopy(llh_array_cur)
   p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
@@ -512,11 +526,11 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_EPIDEMIC(scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
+@views function update_llh_array_EPIDEMIC(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
 
-  t_start = scope[1]
-  t_end = scope[2]
-  positions = scope[3]
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
 
   llh_array_new = deepcopy(llh_array_cur)
   p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
@@ -547,11 +561,11 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_DETECTION(scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
+@views function update_llh_array_DETECTION(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
 
-  t_start = scope[1]
-  t_end = scope[2]
-  positions = scope[3]
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
 
   llh_array_new = deepcopy(llh_array_cur)
 
@@ -568,11 +582,11 @@ end
   return(llh_array_new, p_env_llh_array_cur)
 end
 
-@views function update_llh_array_BBD(scope, llh_array_cur, combi_array, epi_params)
+@views function update_llh_array_BBD(scope::Scope, llh_array_cur, combi_array, epi_params)
 
-  t_start = scope[1]
-  t_end = scope[2]
-  positions = scope[3]
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
 
   llh_array_new = deepcopy(llh_array_cur)
   p_env_llh_array_new = deepcopy(p_env_llh_array_cur)
@@ -594,28 +608,28 @@ end
 ### Sum LLH Array Functions ###
 ###############################
 
-function calc_llh_h(scope, llh_array_cur)
+function calc_llh_h(scope::Scope, llh_array_cur)
 
-  t_start = scope[1]
-  t_end = scope[2]
-  positions = scope[3]
-  element_range = scope[4]
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
+  h_llh_indices = scope.h_llh_indices
 
   llh = 0
 
   for pos in positions
-    llh += sum(llh_array_cur[pos, t_start:t_end, element_range])
+    llh += sum(llh_array_cur[pos, t_start:t_end, h_llh_indices])
   end
 
   return(llh)
 end
 
-function calc_llh_h_and_p(scope, llh_array_cur, p_env_llh_array_cur)
+function calc_llh_h_and_p(scope::Scope, llh_array_cur, p_env_llh_array_cur)
 
   llh = calc_llh_h(scope, llh_array_cur)
 
-  t_start = scope[1]
-  t_end = scope[2]
+  t_start = scope.t_start
+  t_end = scope.t_end
 
   p_env_llh = 0
 

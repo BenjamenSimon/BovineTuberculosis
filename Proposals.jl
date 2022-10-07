@@ -417,9 +417,8 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
 
   lower_t = t
   upper_t = size(combi_array_cur[1], 2) #T
-  h_positions = [position] # extended dependent on movement choice
-  h_element_range = 1:13
-
+  changed_h_positions = [position] # extended dependent on movement choice
+  h_llh_indices = 1:13
 
   ####################
   ### Extract Data ###
@@ -507,11 +506,11 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
                               f_to_p_dict[ids_to_pos_dict[on_cph_row_ids[j]]][2] ]
 
 
-        h_positions = [h_positions ; differences[j, 5]]
+        changed_h_positions = [changed_h_positions ; differences[j, 5]]
       end
   end
 
-  h_positions_oi = unique(h_positions[h_positions .> 0])
+  changed_h_positions_oi = unique(changed_h_positions[changed_h_positions .> 0])
 
   differences_oi = differences[(differences[:,4] .> 0), :]
 
@@ -562,7 +561,9 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
     log_q_ratio_data[(2+size_moves_cur+k), :] = [temp_moves_prime[k, 1:3], temp_moves_prime[k, 4:6]]
   end
 
-  return(combi_array_prime, movement_record_prime, [lower_t, upper_t, h_positions_oi, h_element_range, position], differences_oi, parish_differences, log_q_ratio_data, tracker)
+  scope = Scope(lower_t, upper_t, changed_h_positions_oi, h_llh_indices)
+
+  return(combi_array_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, tracker)
 end
 
 function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict)
@@ -595,7 +596,7 @@ function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, 
 
   ### Calculate the update ###
 
-  combi_array_prime, valid = update_data_AddRem_Movement(combi_array_cur, scope, combi_array_prime, epi_params, differences_oi, parish_differences)
+  combi_array_prime, valid = update_data_AddRem_Movement(combi_array_cur, scope, position, combi_array_prime, epi_params, differences_oi, parish_differences)
 
   if valid != 1
     log_q_ratio = -Inf
@@ -806,8 +807,8 @@ function propose_epidemic_params(N_its, results, other_res,
   ### Update the data ###
   #######################
 
-    scope = [1, 360, 1:size(combi_array_cur[1], 1), [3,4,8,9]]
-    # lower_t, upper_t, h_pos_ids, h_element_range
+    scope = Scope(1, 360, 1:size(combi_array[1], 1), [3,4,8,9])
+    # lower_t, upper_t, h_pos_ids, h_llh_indicies
 
     combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, log_params_draw, f_to_p_dict, scope)
 
@@ -830,8 +831,8 @@ function propose_detection_params(N_its, results, other_res,
                                                               it, log_params_cur, [6,7], 5,
                                                               n_tune, m, λ, d, covarM)
 
-    scope = [1, 360, 1:size(combi_array_cur[1], 1), [5,6]]
-    # lower_t, upper_t, h_pos_ids, h_element_range
+    scope = Scope(1, 360, 1:size(combi_array[1], 1), [5,6])
+    # lower_t, upper_t, h_pos_ids, h_llh_indices
 
   return(log_params_draw, 0, mixture, λ, combi_array_cur, scope)
 end

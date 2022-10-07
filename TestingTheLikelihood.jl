@@ -546,8 +546,20 @@ combi_array = Union{Array{Int},Array{Float64}}[array1, array2, array3, array4]
 
 scope = [1, 360, 1:size(combi_array[1], 1), [3,4,8,9]]
 
+struct Scope
+  t_start::Int64
+  t_end::Int64
+  range_::UnitRange{Int64}
+  llh_inx::Vector{Int64}
+end
+
+scope = Scope(1, 360, 1:size(combi_array[1], 1), [3,4,8,9])
+
+
 llh_array = zeros(size(combi_array[1], 1), 360, 13)
 p_env_llh_array = zeros(size(combi_array[4], 1), 360, 2)
+
+update_llh_array_EPIDEMIC(scope, llh_array, p_env_llh_array, combi_array, epi_params_true, f_to_p_dict)
 
 
 using ProfileView

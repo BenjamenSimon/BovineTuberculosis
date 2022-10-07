@@ -75,7 +75,7 @@ function plot_acc_rates_against_λ_and_m_inf_scaled(other_res, tuning_res, from,
   plot_acc_batch_inf(other_res, from, to, N_its, plottitle, legendpos, printtrue)
     plot!(tuning_res[from:to, :λ_inf], label = "λ_inf", lw = 3)
     plot!([0.33], seriestype = :hline, label = :none, lw = 3)
-    plot!( ( tuning_res[from:to,:m_inf]./mean(tuning_res[from:to,:m_inf]) ), label = "m_inf", lw = 3)
+    plot!( ( tuning_res[from:to,:m_inf]./mean(tuning_res[from:to,:m_inf]) ), label = "m_inf_scaled_by_mean", lw = 3)
 end
 
 function plot_acc_rates_against_λ_and_m_inf(other_res, tuning_res, from, to, N_its, plottitle, legendpos, printtrue)

@@ -315,7 +315,7 @@ function Initialise(combi_array_cur, epi_params_true, epi_params_dists, record_o
   llh_array_init = zeros(size(combi_array[1], 1), 360, 13)
   p_env_llh_array_init = zeros(size(combi_array[4], 1), 360, 2)
 
-  scope_init = [1, 360, 1:size(combi_array[1], 1), 1:13]
+  scope_init = Scope(1, 360, 1:size(combi_array[1], 1), Vector(1:13))
 
   combi_array_prime = deepcopy(combi_array_cur)
 
@@ -408,7 +408,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
 
   λ_inf = tuning[1]
   m_inf = tuning[2]
-  
+
   λ_det = tuning[3]
   m_det = tuning[4]
 
@@ -462,7 +462,9 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
 
   p_env_llh_array_init = zeros(size(combi_array_cur[4], 1), 360, 2)
 
-  llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL([1, 360, 1:size(combi_array_cur[1], 1), 1:13],
+  global_scope = Scope(1, 360, 1:size(combi_array_cur[1], 1), Vector(1:13))
+
+  llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(global_scope,
                                                             llh_array_init, p_env_llh_array_init,
                                                             combi_array_cur, record_of_movements,
                                                             params_cur, dict_of_movements, f_to_p_dict)

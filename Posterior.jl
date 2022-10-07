@@ -37,7 +37,7 @@ end
 # One needs to do that for each the cur and prime on every draw
 # because we are always looking at a unique selection to save cost
 
-function Infection_params_posterior(llh_array_prime, p_env_llh_array_prime, scope, log_prior_dists, epi_params_prime)
+function Infection_params_posterior(llh_array_prime, p_env_llh_array_prime, scope::Scope, log_prior_dists, epi_params_prime)
 
   log_prior_prime = Infection_prior(log_prior_dists, epi_params_prime)
 
@@ -46,7 +46,7 @@ function Infection_params_posterior(llh_array_prime, p_env_llh_array_prime, scop
   return(post_prime)
 end
 
-function Detection_params_posterior(llh_array_prime, p_env_llh_array_prime, scope, log_prior_dists, epi_params_prime)
+function Detection_params_posterior(llh_array_prime, p_env_llh_array_prime, scope::Scope, log_prior_dists, epi_params_prime)
 
   log_prior_prime = Detection_prior(log_prior_dists, epi_params_prime)
 
@@ -60,7 +60,7 @@ end
 ### Data Augmentation Posterior Distributions ###
 #################################################
 
-function generic_posterior_SE_dataaug(llh_array_prime, p_env_llh_array_prime, scope, epi_params_prime)
+function generic_posterior_SE_dataaug(llh_array_prime, p_env_llh_array_prime, scope::Scope, epi_params_prime)
 
   # Used for MoveSE, AddRemSE
 
@@ -69,7 +69,7 @@ function generic_posterior_SE_dataaug(llh_array_prime, p_env_llh_array_prime, sc
   return(post_prime)
 end
 
-function generic_posterior_dataaug(llh_array_prime, p_env_llh_array_prime, scope, epi_params_prime)
+function generic_posterior_dataaug(llh_array_prime, p_env_llh_array_prime, scope::Scope, epi_params_prime)
 
   # Used for MoveEI, AddRemEI, AddRemDet, AddRemDeath, AddRemMoves, AddRemPenv
 

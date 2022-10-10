@@ -10,11 +10,18 @@ include("MCMCfuncs.jl")
 ### LOAD DATA ###
 #################
 
-combi_array = load("Data/Set 1/combi_array.jld2")["array"]
+# combi_array = load("Data/Set 1/combi_array.jld2")["array"]
 
-f_to_p_dict = load("Data/Set 1/f_to_p_dict.jld2")["dict"]
+# combi_array = load("Data/Set 1/combi_array_unnamed.jld2")["array"]
 
-record_of_movements = load("Data/Set 1/record_of_movements_oi.jld2")["array"]
+DATA_res_and_track = load("Data/Set 1/DATA_res_and_track.jld2")["array"]
+DATA_pers_and_parish = load("Data/Set 1/DATA_pers_and_parish.jld2")["array"]
+
+# f_to_p_dict = load("Data/Set 1/f_to_p_dict.jld2")["dict"]
+
+f_to_p_structs = load("Data/Set 1/f_to_p_structs.jld2")["struct"]
+
+record_of_movements = Array(load("Data/Set 1/record_of_movements_oi.jld2")["array"])
 
 dict_of_movements = load("Data/Set 1/dict_of_movements.jld2")["dict"]
 
@@ -64,85 +71,86 @@ epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 ############################
 
 r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
-                          combi_array = combi_array, moves_record = record_of_movements,
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
+                          moves_record = record_of_movements,
                           params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
-                          dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                           ids_to_pos_dict = ids_to_pos_dict)
 
-r1_cut = r1[1:5499, :]
-or1_cut = or1[1:5499, :]
-ar1_cut = ar1[1:5499, :]
-tr1_cut = tr1[1:5499, :]
-ut1_cut = ut1[1:5499, :]
+CSV.write("Inference/Test1/res_infpars.csv", r1, header = true)
+CSV.write("Inference/Test1/other_res_infpars.csv", or1, header = true)
+CSV.write("Inference/Test1/aug_res_infpars.csv", ar1, header = true)
+CSV.write("Inference/Test1/tuning_res_infpars.csv", tr1, header = true)
+CSV.write("Inference/Test1/update_tracker_infpars.csv", ut1, header = true)
 
-r2, or2, ar2, tr2, ut2 = Blk_Adaptive_RWM_MCMC(;N_its = 55000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
-                          combi_array = combi_array, moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.03, 0.03, 0.2, 0.04],
-                          dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+r2, or2, ar2, tr2, ut2 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.1, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                           ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [true, false, false, false, false, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, true, false, false, false, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, true, false, false, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, false, true, false, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, false, false, true, false, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, false, false, false, true, false, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false], data_aug_infer = [false, false, false, false, false, false, true, false],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 
 
 Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false], data_aug_infer = [false, false, false, false, false, false, false, true],
-                        combi_array = combi_array, moves_record = record_of_movements,
+                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                         params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                         ids_to_pos_dict = ids_to_pos_dict)
 
 #################################
@@ -156,21 +164,30 @@ BenchmarkTools.DEFAULT_PARAMETERS.samples = 10000
   update_data_Move_SE(combi_array, 1, 26, 50, 1)
 end
 
-
-
 ##########################
 ### Profiling function ###
 ##########################
 
+Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
+                            DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                            params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
+                            dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                            ids_to_pos_dict = ids_to_pos_dict)
+
 using ProfileView
 
 @profview Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
-                            combi_array = combi_array, moves_record = record_of_movements,
+                            DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                             params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
-                            dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
+                            dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                             ids_to_pos_dict = ids_to_pos_dict)
 
 warntype_last()
+
+@code_warntype s(x)
+
+# Articles on speeding up julia code
+https://discourse.julialang.org/t/code-warntype-shows-lots-of-union-nothing-tuple-int64-int64/60748/4
 
 ProfileView.view(nothing)
 
@@ -183,10 +200,10 @@ using PProf
 
 # collect a profile
 @profile Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
-                          combi_array = combi_array, moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
-                          dict_of_movements = dict_of_movements, f_to_p_dict = f_to_p_dict,
-                          ids_to_pos_dict = ids_to_pos_dict)
+                            DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                            params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
+                            dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                            ids_to_pos_dict = ids_to_pos_dict)
 
 # Export pprof profile and open interactive profiling web interface.
 pprof()
@@ -194,4 +211,4 @@ pprof()
 # https://github.com/JuliaPerf/PProf.jl
 # https://github.com/google/pprof/blob/main/doc/README.md
 
-PProf.refresh(file="PProf_MCMC_inf.pb.gz")
+PProf.refresh(file="PProf_MCMC_inf_fast.pb.gz")

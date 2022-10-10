@@ -10,7 +10,7 @@ struct Scope
   h_llh_indices::Vector{Int64}
 end
 
-# scope = Scope(1, 360, 1:size(combi_array[1], 1), [3,4,8,9])
+# scope = Scope(1, 360, 1:size(DATA_res_and_track[1], 1), [3,4,8,9])
 # scope.t_start
 
 ################################################
@@ -28,7 +28,7 @@ function log_pdf_mvhyper(K, k)
 
   m = length(K) # number of groups
 
-  x = fill(0., m) # results
+  x = fill(0.0, m) # results
 
   for i in 1:m
     Kck_i = binomial(BigInt(K[i]), BigInt(k[i]))
@@ -49,9 +49,9 @@ end
 ### Functions to calculate movement likelihoods ###
 ###################################################
 
-function moves_MHG(;States_Moves = [90000, 5000, 5000], Moves)
+function moves_MHG(;States_Moves::Vector{Int64} = [90000, 5000, 5000], Moves::Vector{Int64})
 
-  prob = log_pdf_mvhyper(States_Moves, Moves)
+  prob::Float64 = log_pdf_mvhyper(States_Moves, Moves)
 
   return(prob)
 end
@@ -61,13 +61,13 @@ end
 ### Functions to calculate exposure and infection likelihoods ###
 #################################################################
 
-function exposures(;States_postM, new_EandI, exp_prob)
+function exposures(;States_postM::Vector{Int64}, new_EandI::Vector{Int64}, exp_prob::Float64)
 
   d = Binomial(States_postM[1], exp_prob)
 
   prob = logpdf(d, new_EandI[1])
 
-  return(prob)
+  return(prob::Float64)
 end
 
 function infections(;States_postM, new_EandI, inf_prob)
@@ -201,30 +201,30 @@ end
 
 
 
-# cStates_Moves_i_t = combi_array[1][position, t, [7,8,9]]   # :cS_Moves, :cE_Moves, :cI_Moves
-# cStates_postM_i_t = combi_array[1][position, t, [10,11,12]]  # :cS_postM, :cE_postM, :cI_postM
-# cStates_postEI_i_t = combi_array[1][position, t, [13,14,15]]  # :cS_postEI, :cE_postEI, :cI_postEI
-# cStates_postDet_i_t = combi_array[1][position, t, [16,17,18]]  #  :cS_postDet, :cE_postDet, :cI_postDet
+# cStates_Moves_i_t = DATA_res_and_track[1][position, t, [7,8,9]]   # :cS_Moves, :cE_Moves, :cI_Moves
+# cStates_postM_i_t = DATA_res_and_track[1][position, t, [10,11,12]]  # :cS_postM, :cE_postM, :cI_postM
+# cStates_postEI_i_t = DATA_res_and_track[1][position, t, [13,14,15]]  # :cS_postEI, :cE_postEI, :cI_postEI
+# cStates_postDet_i_t = DATA_res_and_track[1][position, t, [16,17,18]]  #  :cS_postDet, :cE_postDet, :cI_postDet
 #
-# bStates_init_i_t = combi_array[1][position, t, [22,23,24]]  #  :bS_init, :bE_init, :bI_init
-# bStates_postEI_i_t = combi_array[1][position, t, [25,26,27]]  #  :bS_postEI, :bE_postEI, :bI_postEI
+# bStates_init_i_t = DATA_res_and_track[1][position, t, [22,23,24]]  #  :bS_init, :bE_init, :bI_init
+# bStates_postEI_i_t = DATA_res_and_track[1][position, t, [25,26,27]]  #  :bS_postEI, :bE_postEI, :bI_postEI
 #
-# Moves_off_i_t = combi_array[2][position, t, [7,8,9]]  #  :sus_off, :exp_off, :inf_off
-# Moves_on_out_i_t = combi_array[2][position, t, [10,11,12]]  #  :S_on_out, :E_on_out, :I_on_out
+# Moves_off_i_t = DATA_res_and_track[2][position, t, [7,8,9]]  #  :sus_off, :exp_off, :inf_off
+# Moves_on_out_i_t = DATA_res_and_track[2][position, t, [10,11,12]]  #  :S_on_out, :E_on_out, :I_on_out
 #
-# cEandI_i_t = combi_array[2][position, t, [13,14]]  #  :c_new_exp, :c_new_inf
-# cEandI_probs_i_t = combi_array[3][position, t, [4,6]]  #  :c_exp_prob, :c_inf_prob
+# cEandI_i_t = DATA_res_and_track[2][position, t, [13,14]]  #  :c_new_exp, :c_new_inf
+# cEandI_probs_i_t = DATA_pers_and_parish[1][position, t, [4,6]]  #  :c_exp_prob, :c_inf_prob
 #
-# bEandI_i_t = combi_array[2][position, t, [15,16]]  #  :b_new_exp, :b_new_inf
-# bEandI_probs_i_t = combi_array[3][position, t, [5,7]]  #  :b_exp_prob, :b_inf_prob
+# bEandI_i_t = DATA_res_and_track[2][position, t, [15,16]]  #  :b_new_exp, :b_new_inf
+# bEandI_probs_i_t = DATA_pers_and_parish[1][position, t, [5,7]]  #  :b_exp_prob, :b_inf_prob
 #
-# dets_i_t = combi_array[2][position, t, [19,20]]  #  :E_detected, :I_detected
-# test_occur_i_t = combi_array[2][position, t, [17]]  #  :test_occur
+# dets_i_t = DATA_res_and_track[2][position, t, [19,20]]  #  :E_detected, :I_detected
+# test_occur_i_t = DATA_res_and_track[2][position, t, [17]]  #  :test_occur
 #
-# cDeaths_i_t = combi_array[2][position, t, [22,23,24]]  #  :c_S_death, :c_E_death, :c_I_death
+# cDeaths_i_t = DATA_res_and_track[2][position, t, [22,23,24]]  #  :c_S_death, :c_E_death, :c_I_death
 #
-# b_birth_i_t = combi_array[2][position, t, [25]]  #  :b_birth
-# bDeaths_i_t = combi_array[2][position, t, [26,27,28]]  #  :b_S_death, :b_E_death, :b_I_death
+# b_birth_i_t = DATA_res_and_track[2][position, t, [25]]  #  :b_birth
+# bDeaths_i_t = DATA_res_and_track[2][position, t, [26,27,28]]  #  :b_S_death, :b_E_death, :b_I_death
 #
 # inf_det_prob = epi_params[6]
 # exp_det_prob = inf_det_prob * epi_params[7]
@@ -234,16 +234,16 @@ end
 #
 #
 #
-# pcStates_init_k_t = combi_array[4][position, t, [4,5,6]]
-# pbStates_init_k_t = combi_array[4][position, t, [10,11,12]]
+# pcStates_init_k_t = DATA_pers_and_parish[2][position, t, [4,5,6]]
+# pbStates_init_k_t = DATA_pers_and_parish[2][position, t, [10,11,12]]
 #
-# pI_init_k_t = sum(combi_array[4][position, t, [6,12]])
+# pI_init_k_t = sum(DATA_pers_and_parish[2][position, t, [6,12]])
 #
-# remaining_pressure_k_t = combi_array[4][position, t, [16]]
-# new_pressure_k_t = combi_array[4][position, t, [17]]
-# scaling_k = combi_array[4][position, t, [18]]
+# remaining_pressure_k_t = DATA_pers_and_parish[2][position, t, [16]]
+# new_pressure_k_t = DATA_pers_and_parish[2][position, t, [17]]
+# scaling_k = DATA_pers_and_parish[2][position, t, [18]]
 #
-# p_env_prev_k_t = combi_array[4][position, t, [19]]
+# p_env_prev_k_t = DATA_pers_and_parish[2][position, t, [19]]
 #
 # ϵ = epi_params[5]
 
@@ -253,129 +253,134 @@ end
 ### Caclulate LLH Elements Functions ###
 ########################################
 
-function movements_llh_i_t(;position, t, combi_array, movement_records, movement_dict)
+function movements_llh_i_t(;position, t, DATA_res_and_track, movement_records, movement_dict)
 
   # MOVEMENT PROCESS
 
-  movement_records_i_t = movement_records[movement_dict[(position, t)], :]
+  movement_index = movement_dict[(position, t)]
+
+  movement_records_i_t = movement_records[movement_index, :]
 
   # Probability of moving animal states off farm of all animals on farm
-  m_off_llh = moves_MHG(States_Moves = combi_array[1][position, t, [7,8,9]],
-                               Moves = combi_array[2][position, t, [7,8,9]])
+  m_off_llh::Float64 = moves_MHG(States_Moves = DATA_res_and_track[1][position, t, [7,8,9]],
+                               Moves = DATA_res_and_track[2][position, t, [7,8,9]])
 
   # Probability of moving animal states to each farm of animals moved off
-  indv_moves_off_llh = 0.
+  indv_moves_off_llh::Float64 = 0.0
 
   @inbounds for j in 1:size(movement_records_i_t, 1)
 
-    indv_moves_off_llh += moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
-                                           Moves = movement_records_i_t[j, 7:9])
+    indv_moves_off_llh = indv_moves_off_llh + Float64(moves_MHG(States_Moves = movement_records_i_t[j, 4:6],
+                                                                        Moves = movement_records_i_t[j, 7:9]))
 
   end
 
   # Probability of animal states moving onto the farm from outside farms of interest
   # m_on_out_llh = moves_MHG(States_Moves = [10800, 600, 600],
-  #                                 Moves = combi_array[2][position, t, [10,11,12]])
+  #                                 Moves = DATA_res_and_track[2][position, t, [10,11,12]])
 
   # [1,2]
   # not returning m_on_out_llh at the moment
-  return([m_off_llh, indv_moves_off_llh])
+
+  llh_res = [m_off_llh, indv_moves_off_llh]
+
+  return(llh_res)
 end # ALL MOVEMENTS
 
-function movements_total_llh_i_t(;position, t, combi_array, movement_records, movement_dict)
+function movements_total_llh_i_t(;position, t, DATA_res_and_track, movement_records, movement_dict)
 
   # MOVEMENT PROCESS
 
   # Probability of moving animal states off farm of all animals on farm
-  m_off_llh = moves_MHG(States_Moves = combi_array[1][position, t, [7,8,9]],
-                               Moves = combi_array[2][position, t, [7,8,9]])
+  m_off_llh = moves_MHG(States_Moves = DATA_res_and_track[1][position, t, [7,8,9]],
+                               Moves = DATA_res_and_track[2][position, t, [7,8,9]])
 
   # [1]
   return(m_off_llh)
 end # JUST TOTAL MOVEMENTS OFF
 
 
-function c_epidemic_llh_i_t(;position, t, combi_array)
+function c_epidemic_llh_i_t(;position, t, DATA_res_and_track, DATA_pers_and_parish)
 
   # CATTLE EPIDEMIC PROCESS
 
-  c_exp_llh = exposures(States_postM = combi_array[1][position, t, [10,11,12]],
-                           new_EandI = combi_array[2][position, t, [13,14]],
-                            exp_prob = combi_array[3][position, t, 4])
+  c_exp_llh = exposures(States_postM = DATA_res_and_track[1][position, t, [10,11,12]],
+                           new_EandI = DATA_res_and_track[2][position, t, [13,14]],
+                            exp_prob = DATA_pers_and_parish[1][position, t, 4])
 
-  c_inf_llh = infections(States_postM = combi_array[1][position, t, [10,11,12]],
-                            new_EandI = combi_array[2][position, t, [13,14]],
-                             inf_prob = combi_array[3][position, t, 6])
+  c_inf_llh = infections(States_postM = DATA_res_and_track[1][position, t, [10,11,12]],
+                            new_EandI = DATA_res_and_track[2][position, t, [13,14]],
+                             inf_prob = DATA_pers_and_parish[1][position, t, 6])
 
   # [3,4]
   return([c_exp_llh, c_inf_llh])
 end
 
 
-function b_epidemic_llh_i_t(;position, t, combi_array)
+function b_epidemic_llh_i_t(;position, t, DATA_res_and_track, DATA_pers_and_parish)
 
   # BADGER EPIDEMIC PROCESS
 
-  b_exp_llh = exposures(;States_postM = combi_array[1][position, t, [22,23,24]],
-                            new_EandI = combi_array[2][position, t, [15,16]],
-                             exp_prob = combi_array[3][position, t, 5])
+  b_exp_llh = exposures(;States_postM = DATA_res_and_track[1][position, t, [22,23,24]],
+                            new_EandI = DATA_res_and_track[2][position, t, [15,16]],
+                             exp_prob = DATA_pers_and_parish[1][position, t, 5])
 
-  b_inf_llh = infections(;States_postM = combi_array[1][position, t, [22,23,24]],
-                             new_EandI = combi_array[2][position, t, [15,16]],
-                              inf_prob = combi_array[3][position, t, 7])
+  b_inf_llh = infections(;States_postM = DATA_res_and_track[1][position, t, [22,23,24]],
+                             new_EandI = DATA_res_and_track[2][position, t, [15,16]],
+                              inf_prob = DATA_pers_and_parish[1][position, t, 7])
 
   # [8,9]
   return([b_exp_llh, b_inf_llh])
 end
 
 
-function exposures_llh_i_t(;position, t, combi_array)
+function exposures_llh_i_t(;position, t, DATA_res_and_track, DATA_pers_and_parish)
 
   # EXPOSURE PROCESS
 
-  c_exp_llh = exposures(States_postM = combi_array[1][position, t, [10,11,12]],
-                           new_EandI = combi_array[2][position, t, [13,14]],
-                            exp_prob = combi_array[3][position, t, 4])
+  c_exp_llh::Float64 = exposures(States_postM = DATA_res_and_track[1][position, t, [10,11,12]],
+                           new_EandI = DATA_res_and_track[2][position, t, [13,14]],
+                            exp_prob = DATA_pers_and_parish[1][position, t, 4])
 
-  b_exp_llh = exposures(;States_postM = combi_array[1][position, t, [22,23,24]],
-                            new_EandI = combi_array[2][position, t, [15,16]],
-                             exp_prob = combi_array[3][position, t, 5])
+  b_exp_llh::Float64 = exposures(;States_postM = DATA_res_and_track[1][position, t, [22,23,24]],
+                            new_EandI = DATA_res_and_track[2][position, t, [15,16]],
+                             exp_prob = DATA_pers_and_parish[1][position, t, 5])
 
   # [3,8]
-  return([c_exp_llh, b_exp_llh])
+  return([c_exp_llh::Float64, b_exp_llh::Float64])
 end
 
 
-function infections_llh_i_t(;position, t, combi_array)
+function infections_llh_i_t(;position, t, DATA_res_and_track, DATA_pers_and_parish)
 
   # INFECTION PROCESS
 
-  c_inf_llh = infections(;States_postM = combi_array[1][position, t, [10,11,12]],
-                             new_EandI = combi_array[2][position, t, [13,14]],
-                              inf_prob = combi_array[3][position, t, 6])
+  c_inf_llh = infections(;States_postM = DATA_res_and_track[1][position, t, [10,11,12]],
+                             new_EandI = DATA_res_and_track[2][position, t, [13,14]],
+                              inf_prob = DATA_pers_and_parish[1][position, t, 6])
 
-  b_inf_llh = infections(;States_postM = combi_array[1][position, t, [22,23,24]],
-                             new_EandI = combi_array[2][position, t, [15,16]],
-                              inf_prob = combi_array[3][position, t, 7])
+  b_inf_llh = infections(;States_postM = DATA_res_and_track[1][position, t, [22,23,24]],
+                             new_EandI = DATA_res_and_track[2][position, t, [15,16]],
+                              inf_prob = DATA_pers_and_parish[1][position, t, 7])
 
   # [4,9]
   return([c_inf_llh, b_inf_llh])
 end
 
 
-function detection_llh_i_t(;position, t, combi_array, epi_params)
+function detection_llh_i_t(;position, t, DATA_res_and_track, epi_params)
 
-  test_occur_i_t = combi_array[2][position, t, [17]][1]  #  :test_occur
+  test_occur_i_t = DATA_res_and_track[2][position, t, [17]][1]  #  :test_occur
 
   # DETECTION PROCESS
     # where test_occur_i_t = 1 if its a test week on farm i, 0 otherwise
 
-  exp_det_llh = test_occur_i_t * exposed_detections(States_postEI = combi_array[1][position, t, [13,14,15]],
-                                                           dets = combi_array[2][position, t, [19,20]],
+  exp_det_llh = test_occur_i_t * exposed_detections(States_postEI = DATA_res_and_track[1][position, t, [13,14,15]],
+                                                           dets = DATA_res_and_track[2][position, t, [19,20]],
                                                    exp_det_prob = (epi_params[6] * epi_params[7]))
 
-  inf_det_llh = test_occur_i_t * infectious_detections(States_postEI = combi_array[1][position, t, [13,14,15]],
-                                                              dets = combi_array[2][position, t, [19,20]],
+  inf_det_llh = test_occur_i_t * infectious_detections(States_postEI = DATA_res_and_track[1][position, t, [13,14,15]],
+                                                              dets = DATA_res_and_track[2][position, t, [19,20]],
                                                       inf_det_prob = epi_params[6])
 
   # [5,6]
@@ -383,53 +388,53 @@ function detection_llh_i_t(;position, t, combi_array, epi_params)
 end
 
 
-function c_birth_death_llh_i_t(;position, t, combi_array)
+function c_birth_death_llh_i_t(;position, t, DATA_res_and_track)
 
   # CATTLE BIRTH AND DEATH PROCESS
 
-  c_dth_llh = cattle_death(States_postDet = combi_array[1][position, t, [16,17,18]],
-                                   Deaths = combi_array[2][position, t, [22,23,24]])
+  c_dth_llh = cattle_death(States_postDet = DATA_res_and_track[1][position, t, [16,17,18]],
+                                   Deaths = DATA_res_and_track[2][position, t, [22,23,24]])
 
   # [7]
   return(c_dth_llh)
 end
 
 
-function b_birth_death_llh_i_t(;position, t, combi_array, epi_params)
+function b_birth_death_llh_i_t(;position, t, DATA_res_and_track, epi_params)
 
   # BADGER BIRTH AND DEATH PROCESS
 
-  b_bths_llh = badger_births(;States_postEI = combi_array[1][position, t, [25,26,27]],
-                                   b_births = combi_array[2][position, t, 25],
+  b_bths_llh = badger_births(;States_postEI = DATA_res_and_track[1][position, t, [25,26,27]],
+                                   b_births = DATA_res_and_track[2][position, t, 25],
                                        θ_bb = epi_params[8])
 
-  bS_dths_llh = badger_S_deaths(;States_postEI = combi_array[1][position, t, [25,26,27]],
-                                        Deaths = combi_array[2][position, t, [26,27,28]],
+  bS_dths_llh = badger_S_deaths(;States_postEI = DATA_res_and_track[1][position, t, [25,26,27]],
+                                        Deaths = DATA_res_and_track[2][position, t, [26,27,28]],
                                           θ_bd = epi_params[9])
 
-  bE_dths_llh = badger_E_deaths(;States_postEI = combi_array[1][position, t, [25,26,27]],
-                                        Deaths = combi_array[2][position, t, [26,27,28]],
+  bE_dths_llh = badger_E_deaths(;States_postEI = DATA_res_and_track[1][position, t, [25,26,27]],
+                                        Deaths = DATA_res_and_track[2][position, t, [26,27,28]],
                                           θ_bd = epi_params[9])
 
-  bI_dths_llh = badger_I_deaths(;States_postEI = combi_array[1][position, t, [25,26,27]],
-                                        Deaths = combi_array[2][position, t, [26,27,28]],
+  bI_dths_llh = badger_I_deaths(;States_postEI = DATA_res_and_track[1][position, t, [25,26,27]],
+                                        Deaths = DATA_res_and_track[2][position, t, [26,27,28]],
                                           θ_bd = epi_params[9])
 
   # [10,11,12,13]
   return([b_bths_llh, bS_dths_llh, bE_dths_llh, bI_dths_llh])
 end
 
-function p_env_llh_k_t(;p_position, t, combi_array, epi_params)
+function p_env_llh_k_t(;p_position, t, DATA_pers_and_parish, epi_params)
 
   # PARISH ENVIRONMENTAL RESERVOIR
 
-  new_pressure_llh = new_pressure(;pI_init = combi_array[4][p_position, t, [6,12]],
-                                   new_pres = combi_array[4][p_position, t, 17])
+  new_pressure_llh = new_pressure(;pI_init = DATA_pers_and_parish[2][p_position, t, [6,12]],
+                                   new_pres = DATA_pers_and_parish[2][p_position, t, 17])
 
 
-  remaining_pressure_llh = remaining_pressure(;scaled_p_env_prev = prod(combi_array[4][p_position, t, [18, 19]]),
+  remaining_pressure_llh = remaining_pressure(;scaled_p_env_prev = prod(DATA_pers_and_parish[2][p_position, t, [18, 19]]),
                                                ϵ = epi_params[5],
-                                               remaining_pres = combi_array[4][p_position, t, 16])
+                                               remaining_pres = DATA_pers_and_parish[2][p_position, t, 16])
 
   return([new_pressure_llh, remaining_pressure_llh])
 end
@@ -440,7 +445,7 @@ end
 ### Update LLH Array Functions ###
 ##################################
 
-@views function update_llh_array_ALL(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
+@views function update_llh_array_ALL(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, DATA_pers_and_parish, movement_records, epi_params, movement_dict, f_to_p_structs::Vector{Farm_Parish_info})
 
   t_start = scope.t_start
   t_end = scope.t_end
@@ -454,28 +459,27 @@ end
   @inbounds for pos in positions
     for t in t_start:t_end
 
-      llh_array_new[pos, t, [1,2]] = movements_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
+      llh_array_new[pos, t, [1,2]] = movements_llh_i_t(;position = pos, t = t, DATA_res_and_track, movement_records = movement_records, movement_dict = movement_dict)
 
-      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, DATA_res_and_track, DATA_pers_and_parish)
 
-      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, DATA_res_and_track, DATA_pers_and_parish)
 
-      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, DATA_res_and_track, epi_params = epi_params)
 
-      llh_array_new[pos, t, 7] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, 7] = c_birth_death_llh_i_t(;position = pos, t = t, DATA_res_and_track)
 
-      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, DATA_res_and_track, epi_params = epi_params)
 
     end
 
-    # push!(parishes_to_update, f_to_p_dict[combi_array[1][pos,1,2]][2])
-    push!(parishes_to_update, f_to_p_dict[pos][2])
+    push!(parishes_to_update, f_to_p_structs[pos].parish_position)
   end
 
   @inbounds for p_pos in parishes_to_update
     for t in t_start:t_end
 
-      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
+      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, DATA_pers_and_parish, epi_params = epi_params)
 
     end
   end
@@ -483,7 +487,7 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_ALL_excindvmoves(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, movement_records, epi_params, movement_dict, f_to_p_dict)
+@views function update_llh_array_ALL_excindvmoves(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, DATA_pers_and_parish, movement_records, epi_params, movement_dict, f_to_p_structs::Vector{Farm_Parish_info})
 
   t_start = scope.t_start
   t_end = scope.t_end
@@ -497,28 +501,27 @@ end
   @inbounds for pos in positions
     for t in t_start:t_end
 
-      llh_array_new[pos, t, 1] = movements_total_llh_i_t(;position = pos, t = t, combi_array, movement_records = movement_records, movement_dict = movement_dict)
+      llh_array_new[pos, t, 1] = movements_total_llh_i_t(;position = pos, t = t, DATA_res_and_track, movement_records = movement_records, movement_dict = movement_dict)
 
-      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, DATA_res_and_track, DATA_pers_and_parish)
 
-      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, DATA_res_and_track, DATA_pers_and_parish)
 
-      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, DATA_res_and_track, epi_params = epi_params)
 
-      llh_array_new[pos, t, 7] = c_birth_death_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, 7] = c_birth_death_llh_i_t(;position = pos, t = t, DATA_res_and_track)
 
-      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, DATA_res_and_track, epi_params = epi_params)
 
     end
 
-    # push!(parishes_to_update, f_to_p_dict[combi_array[1][pos,1,2]][2])
-    push!(parishes_to_update, f_to_p_dict[pos][2])
+    push!(parishes_to_update, f_to_p_structs[pos].parish_position)
   end
 
   @inbounds for p_pos in parishes_to_update
     for t in t_start:t_end
 
-      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
+      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, DATA_pers_and_parish, epi_params = epi_params)
 
     end
   end
@@ -526,7 +529,7 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_EPIDEMIC(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
+@views function update_llh_array_EPIDEMIC(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, DATA_pers_and_parish, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   t_start = scope.t_start
   t_end = scope.t_end
@@ -540,20 +543,19 @@ end
   @inbounds for pos in positions
     for t in t_start:t_end
 
-      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, [3,8]] = exposures_llh_i_t(;position = pos, t = t, DATA_res_and_track, DATA_pers_and_parish)
 
-      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, combi_array)
+      llh_array_new[pos, t, [4,9]] = infections_llh_i_t(;position = pos, t = t, DATA_res_and_track, DATA_pers_and_parish)
 
     end
 
-    # push!(parishes_to_update, f_to_p_dict[combi_array[1][pos,1,2]][2])
-    push!(parishes_to_update, f_to_p_dict[pos][2])
+    push!(parishes_to_update, f_to_p_structs[pos].parish_position)
   end
 
   @inbounds for p_pos in parishes_to_update
     for t in t_start:t_end
 
-      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, combi_array, epi_params = epi_params)
+      p_env_llh_array_new[p_pos, t, [1,2]] = p_env_llh_k_t(;p_position = p_pos, t = t, DATA_pers_and_parish, epi_params = epi_params)
 
     end
   end
@@ -561,7 +563,7 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_DETECTION(scope::Scope, llh_array_cur, p_env_llh_array_cur, combi_array, epi_params, f_to_p_dict)
+@views function update_llh_array_DETECTION(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   t_start = scope.t_start
   t_end = scope.t_end
@@ -574,7 +576,7 @@ end
   @inbounds for pos in positions
     for t in t_start:t_end
 
-      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+      llh_array_new[pos, t, [5,6]] = detection_llh_i_t(;position = pos, t = t, DATA_res_and_track, epi_params = epi_params)
 
     end
   end
@@ -582,7 +584,7 @@ end
   return(llh_array_new, p_env_llh_array_cur)
 end
 
-@views function update_llh_array_BBD(scope::Scope, llh_array_cur, combi_array, epi_params)
+@views function update_llh_array_BBD(scope::Scope, llh_array_cur, DATA_res_and_track, epi_params)
 
   t_start = scope.t_start
   t_end = scope.t_end
@@ -596,7 +598,7 @@ end
   @inbounds for pos in positions
     for t in t_start:t_end
 
-      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, combi_array, epi_params = epi_params)
+      llh_array_new[pos, t, [10,11,12,13]] = b_birth_death_llh_i_t(;position = pos, t = t, DATA_res_and_track, epi_params = epi_params)
 
     end
   end
@@ -615,7 +617,7 @@ function calc_llh_h(scope::Scope, llh_array_cur)
   positions = scope.h_positions
   h_llh_indices = scope.h_llh_indices
 
-  llh = 0
+  llh = 0.0
 
   for pos in positions
     llh += sum(llh_array_cur[pos, t_start:t_end, h_llh_indices])
@@ -631,7 +633,7 @@ function calc_llh_h_and_p(scope::Scope, llh_array_cur, p_env_llh_array_cur)
   t_start = scope.t_start
   t_end = scope.t_end
 
-  p_env_llh = 0
+  p_env_llh = 0.0
 
   for p_pos in 1:size(p_env_llh_array_cur, 1) #p_positions
     p_env_llh += sum(p_env_llh_array_cur[p_pos, t_start:t_end, :])

@@ -25,11 +25,11 @@ end
 ### Move SE ###
 ###############
 
-function propose_Move_SE(combi_array_cur, epi_params, f_to_p_dict)
+function propose_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_SE_events_at_t = combi_array_cur[2][(combi_array_cur[2][:, :, 13] .> 0), [1,3]]
+  farms_with_SE_events_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[2][:, :, 13] .> 0), [1,3]]
 
   ### Generate the update parameters ###
 
@@ -44,21 +44,21 @@ function propose_Move_SE(combi_array_cur, epi_params, f_to_p_dict)
 
   if 360 < t + Δ || t + Δ <= 0
     log_q_ratio = -Inf
-    Move_SE_track = [position, t, 0, 4, Δ, 1]
+    Move_SE_track = [position, t, 0., 4., Δ, 1.]
                    # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_SE_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_SE_track)
   end
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_Move_SE(combi_array_cur, position, t, Δ, 1, f_to_p_dict)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid = update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, 1, f_to_p_structs)
   # num_SE_moved set to 1
 
   if valid != 1
     log_q_ratio = -Inf
-    Move_SE_track = [position, t, 0, 2, Δ, 1]
+    Move_SE_track = [position, t, 0., 2., Δ, 1.]
                    # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_SE_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_SE_track)
   end
 
 
@@ -66,15 +66,15 @@ function propose_Move_SE(combi_array_cur, epi_params, f_to_p_dict)
 
   num_farms_with_SE_events_at_t = size(farms_with_SE_events_at_t, 1)
 
-  num_farms_with_SE_events_at_t_prime = size(combi_array_prime[2][(combi_array_prime[2][:, :, 13] .> 0), [1,3]], 1)
+  num_farms_with_SE_events_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[2][:, :, 13] .> 0), [1,3]], 1)
 
   log_q_ratio = log(num_farms_with_SE_events_at_t / num_farms_with_SE_events_at_t_prime)
 
 
-  Move_SE_track = [position, t, 0, 0, Δ, 1]
+  Move_SE_track = [position, t, 0., 0., Δ, 1.]
                  # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
 
-  return(combi_array_prime, log_q_ratio, scope, Move_SE_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, Move_SE_track)
 end
 
 
@@ -82,11 +82,11 @@ end
 ### Move EI ###
 ###############
 
-function propose_Move_EI(combi_array_cur, epi_params, f_to_p_dict)
+function propose_Move_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_EI_events_at_t = combi_array_cur[2][(combi_array_cur[2][:, :, 14] .> 0), [1,3]]
+  farms_with_EI_events_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[2][:, :, 14] .> 0), [1,3]]
 
   ### Generate the update parameters ###
 
@@ -101,21 +101,21 @@ function propose_Move_EI(combi_array_cur, epi_params, f_to_p_dict)
 
   if 360 < t + Δ || t + Δ <= 0
     log_q_ratio = -Inf
-    Move_EI_track = [position, t, 0, 4, Δ, 1]
+    Move_EI_track = [position, t, 0., 4., Δ, 1.]
                    # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_EI_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_EI_track)
   end
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid = update_data_Move_EI(combi_array_cur, position, t, Δ, 1, epi_params, f_to_p_dict)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid = update_data_Move_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, 1, epi_params, f_to_p_structs)
   # num_EI_moved set to 1
 
   if valid != 1
     log_q_ratio = -Inf
-    Move_EI_track = [position, t, 0, 2, Δ, 1]
+    Move_EI_track = [position, t, 0., 2., Δ, 1.]
                   # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], Move_EI_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_EI_track)
   end
 
 
@@ -123,15 +123,15 @@ function propose_Move_EI(combi_array_cur, epi_params, f_to_p_dict)
 
   num_farms_with_EI_events_at_t = size(farms_with_EI_events_at_t, 1)
 
-  num_farms_with_EI_events_at_t_prime = size(combi_array_prime[2][(combi_array_prime[2][:, :, 14] .> 0), [1,3]], 1)
+  num_farms_with_EI_events_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[2][:, :, 14] .> 0), [1,3]], 1)
 
   log_q_ratio = log(num_farms_with_EI_events_at_t / num_farms_with_EI_events_at_t_prime)
 
 
-  Move_EI_track = [position, t, 0, 0, Δ, 1]
+  Move_EI_track = [position, t, 0., 0., Δ, 1.]
                  # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
 
-  return(combi_array_prime, log_q_ratio, scope, Move_EI_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, Move_EI_track)
 end
 
 
@@ -139,29 +139,29 @@ end
 ### AddRem SE ###
 #################
 
-function propose_AddRem_SE(combi_array_cur, epi_params, f_to_p_dict)
+function propose_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_S_and_exp_prob_at_t = combi_array_cur[2][(combi_array_cur[1][:, :, 10] .> 0  .&& combi_array_cur[3][:, :, 4] .> 0), [1,3]]
+  farms_with_S_and_exp_prob_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[1][:, :, 10] .> 0  .&& DATA_pers_and_parish_cur[1][:, :, 4] .> 0), [1,3]]
   # Extract all farms that have cS_postM_t > 0 AND prob_exp_t > 0
 
   ### Generate the update parameters ###
 
   t, position = farms_with_S_and_exp_prob_at_t[rand(1:size(farms_with_S_and_exp_prob_at_t, 1)), :]
 
-  AddRem_SE_track = [position, t, 0, 0, 1, -999, -999, -999, -999.]
+  AddRem_SE_track = [position, t, 0., 0., 1., -999., -999., -999., -999.]
                    # :arSE_position, :arSE_t, :arSE_is_accepted, :arSE_reason, :arSE_Δ, :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid, AddRem_SE_track = update_data_AddRem_SE(combi_array_cur, position, t, 1, f_to_p_dict, AddRem_SE_track)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_SE_track = update_data_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, 1, f_to_p_structs, AddRem_SE_track)
   # Δ = 1
 
   if valid != 1
     log_q_ratio = -Inf
     AddRem_SE_track[4] = 2
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_SE_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_SE_track)
   end
 
 
@@ -169,12 +169,12 @@ function propose_AddRem_SE(combi_array_cur, epi_params, f_to_p_dict)
 
   num_farms_with_S_and_exp_prob_at_t = size(farms_with_S_and_exp_prob_at_t, 1)
 
-  num_farms_with_S_and_exp_prob_at_t_prime = size(combi_array_prime[2][(combi_array_prime[1][:, :, 10] .> 0  .&& combi_array_prime[3][:, :, 4] .> 0), [1,3]], 1)
+  num_farms_with_S_and_exp_prob_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[1][:, :, 10] .> 0  .&& DATA_pers_and_parish_prime[1][:, :, 4] .> 0), [1,3]], 1)
 
   log_q_ratio = log(num_farms_with_S_and_exp_prob_at_t / num_farms_with_S_and_exp_prob_at_t_prime)
 
 
-  return(combi_array_prime, log_q_ratio, scope, AddRem_SE_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_SE_track)
 end
 
 
@@ -182,30 +182,30 @@ end
 ### AddRem EI ###
 #################
 
-function propose_AddRem_EI(combi_array_cur, epi_params, f_to_p_dict)
+function propose_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_E_at_t = combi_array_cur[2][(combi_array_cur[1][:, :, 11] .> 0), [1,3]]
+  farms_with_E_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[1][:, :, 11] .> 0), [1,3]]
   # Extract all farms that have cE_postM_t > 0
 
   ### Generate the update parameters ###
 
   t, position = farms_with_E_at_t[rand(1:size(farms_with_E_at_t, 1)), :]
 
-  AddRem_EI_track = [position, t, 0, 0, 1, -999, -999, -999, -999.]
+  AddRem_EI_track = [position, t, 0., 0., 1., -999., -999., -999., -999.]
                    # :arEI_position, :arEI_t, :arEI_is_accepted, :arEI_reason, :arEI_Δ, :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid, AddRem_EI_track = update_data_AddRem_EI(combi_array_cur, position, t, 1, epi_params, f_to_p_dict, AddRem_EI_track)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_EI_track = update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, 1, epi_params, f_to_p_structs, AddRem_EI_track)
   # Δ = 1
 
   if valid != 1
     log_q_ratio = -Inf
     AddRem_EI_track[4] = 2
 
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_EI_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_EI_track)
   end
 
 
@@ -213,12 +213,12 @@ function propose_AddRem_EI(combi_array_cur, epi_params, f_to_p_dict)
 
   num_farms_with_E_at_t = size(farms_with_E_at_t, 1)
 
-  num_farms_with_E_at_t_prime = size(combi_array_prime[2][(combi_array_prime[1][:, :, 11] .> 0), [1,3]], 1)
+  num_farms_with_E_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[1][:, :, 11] .> 0), [1,3]], 1)
 
   log_q_ratio = log(num_farms_with_E_at_t / num_farms_with_E_at_t_prime)
 
 
-  return(combi_array_prime, log_q_ratio, scope, AddRem_EI_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_EI_track)
 end
 
 
@@ -250,12 +250,12 @@ function detection_permutations(cStates_postEI, cDet_cur, epi_params)
   return(chosen_perm)
 end
 
-function propose_AddRem_Det(combi_array_cur, epi_params, f_to_p_dict)
+function propose_AddRem_Det(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_permutable_detections_at_t = combi_array_cur[2][((combi_array_cur[1][:, :, 14] .> 0 .&& combi_array_cur[1][:, :, 15] .> 0) .&&
-                                                   (combi_array_cur[2][:, :, 19] .> 0) .|| (combi_array_cur[2][:, :, 20] .> 0)),
+  farms_with_permutable_detections_at_t = DATA_res_and_track_cur[2][((DATA_res_and_track_cur[1][:, :, 14] .> 0 .&& DATA_res_and_track_cur[1][:, :, 15] .> 0) .&&
+                                                   (DATA_res_and_track_cur[2][:, :, 19] .> 0) .|| (DATA_res_and_track_cur[2][:, :, 20] .> 0)),
                                                   [1,3]]
   # Extract all farms that have cE_postEI_t > 0 AND cI_postEI_t > 0 AND (Edet_t >0 OR I_det_t > 0)
 
@@ -264,8 +264,8 @@ function propose_AddRem_Det(combi_array_cur, epi_params, f_to_p_dict)
 
   t, position = farms_with_permutable_detections_at_t[rand(1:size(farms_with_permutable_detections_at_t, 1)), :]
 
-  cStates_postEI_t = Array(combi_array_cur[1][position, t, 13:15])
-  detections_t = Array(combi_array_cur[2][position, t, 19:20])
+  cStates_postEI_t = Array(DATA_res_and_track_cur[1][position, t, 13:15])
+  detections_t = Array(DATA_res_and_track_cur[2][position, t, 19:20])
 
   # detections_t_new = rng_mvhyper(cStates_postEI_t[2:3], sum(detections_t))
   # NOTE: The probabilities of an E detection event is not that same as an I detection event
@@ -275,32 +275,32 @@ function propose_AddRem_Det(combi_array_cur, epi_params, f_to_p_dict)
 
   Δs = detections_t_new_and_probs[1:2] - detections_t
 
-  AddRem_Det_track = [position, t, 0, 0, Δs[1], Δs[2], -999, -999, -999, -999, -999, -999]
+  AddRem_Det_track = [position, t, 0., 0., Δs[1], Δs[2], -999., -999., -999., -999., -999., -999.]
                   # :arDet_position, :arDet_t, :arDet_is_accepted, :arDet_reason, :arDet_ΔE, :arDet_ΔI,
                                    # :arDet_Edet_before, :arDet_Idet_before, :arDet_Edet_after, :arDet_Idet_after,
                                    # :arDet_cE, :arDet_cI
   if Δs[1] == 0
     log_q_ratio = -Inf
     AddRem_Det_track[4] = 3
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Det_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Det_track)
   end
 
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid, AddRem_Det_track = update_data_AddRem_Det(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict, AddRem_Det_track)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_Det_track = update_data_AddRem_Det(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δs, epi_params, f_to_p_structs, AddRem_Det_track)
 
   if valid != 1
     log_q_ratio = -Inf
     AddRem_Det_track[4] = 2
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Det_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Det_track)
   end
 
 
   ### Calculate the log q ratio (proposal density ratio) ###
   log_q_ratio = detections_t_new_and_probs[4] - detections_t_new_and_probs[3] # q_cur_given_prime - q_prime_given_cur
 
-  return(combi_array_prime, log_q_ratio, scope, AddRem_Det_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_Det_track)
 end
 
 
@@ -333,14 +333,14 @@ function deaths_permutations(cStates_postDet, cDeaths, epi_params)
   return(chosen_perm)
 end
 
-function propose_AddRem_Deaths(combi_array_cur, epi_params, f_to_p_dict)
+function propose_AddRem_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_permutable_deaths_at_t = combi_array_cur[2][( ((combi_array_cur[1][:, :, 16] .> 0 .&& combi_array_cur[1][:, :, 17] .> 0) .||
-                                                            (combi_array_cur[1][:, :, 16] .> 0 .&& combi_array_cur[1][:, :, 18] .> 0) .||
-                                                            (combi_array_cur[1][:, :, 17] .> 0 .&& combi_array_cur[1][:, :, 18] .> 0)) .&&
-                                                            (combi_array_cur[2][:, :, 22] .> 0 .|| combi_array_cur[2][:, :, 23] .> 0 .|| combi_array_cur[2][:, :, 24] .> 0) ),
+  farms_with_permutable_deaths_at_t = DATA_res_and_track_cur[2][( ((DATA_res_and_track_cur[1][:, :, 16] .> 0 .&& DATA_res_and_track_cur[1][:, :, 17] .> 0) .||
+                                                            (DATA_res_and_track_cur[1][:, :, 16] .> 0 .&& DATA_res_and_track_cur[1][:, :, 18] .> 0) .||
+                                                            (DATA_res_and_track_cur[1][:, :, 17] .> 0 .&& DATA_res_and_track_cur[1][:, :, 18] .> 0)) .&&
+                                                            (DATA_res_and_track_cur[2][:, :, 22] .> 0 .|| DATA_res_and_track_cur[2][:, :, 23] .> 0 .|| DATA_res_and_track_cur[2][:, :, 24] .> 0) ),
                                                           [1,3]]
   # Extract all farms that have atleast 2 cStates and at least 1 death.
 
@@ -349,14 +349,14 @@ function propose_AddRem_Deaths(combi_array_cur, epi_params, f_to_p_dict)
 
   t, position = farms_with_permutable_deaths_at_t[rand(1:size(farms_with_permutable_deaths_at_t, 1)), :]
 
-  cStates_postDet_t = Array(combi_array_cur[1][position, t, 16:18])
-  deaths_t = Array(combi_array_cur[2][position, t, 22:24])
+  cStates_postDet_t = Array(DATA_res_and_track_cur[1][position, t, 16:18])
+  deaths_t = Array(DATA_res_and_track_cur[2][position, t, 22:24])
 
   deaths_t_new = rng_mvhyper(cStates_postDet_t, sum(deaths_t))
 
   Δs = deaths_t_new - deaths_t
 
-  AddRem_Deaths_track = [position, t, 0, 0, Δs[1], Δs[2], Δs[3], -999, -999, -999, -999, -999, -999, -999, -999, -999]
+  AddRem_Deaths_track = [position, t, 0., 0., Δs[1], Δs[2], Δs[3], -999., -999., -999., -999., -999., -999., -999., -999., -999.]
                       # :arDeaths_position, :arDeaths_t, :arDeaths_is_accepted, :arDeaths_reason,
                                           # :arDeaths_ΔS, :arDeaths_ΔE, :arDeaths_ΔI,
                                           # :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
@@ -366,24 +366,24 @@ function propose_AddRem_Deaths(combi_array_cur, epi_params, f_to_p_dict)
   if sum(Δs) == 0
     log_q_ratio = -Inf
     AddRem_Deaths_track[4] = 3
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Deaths_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Deaths_track)
   end
 
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid, AddRem_Deaths_track = update_data_AddRem_Deaths(combi_array_cur, position, t, Δs, epi_params, f_to_p_dict, AddRem_Deaths_track)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_Deaths_track = update_data_AddRem_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δs, epi_params, f_to_p_structs, AddRem_Deaths_track)
 
   if valid != 1
     log_q_ratio = -Inf
     AddRem_Deaths_track[4] = 2
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_Deaths_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Deaths_track)
   end
 
   ### Calculate the log q ratio (proposal density ratio) ###
   log_q_ratio = log_pdf_mvhyper(cStates_postDet, deaths_t) - log_pdf_mvhyper(cStates_postDet, deaths_t_new) # q_cur_given_prime - q_prime_given_cur
 
-  return(combi_array_prime, log_q_ratio, scope, AddRem_Deaths_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_Deaths_track)
 end
 
 
@@ -393,8 +393,8 @@ end
 
 function log_q_ratio_movements(log_q_ratio_data)
 
-  q_prime_given_cur = 0.
-  q_cur_given_prime = 0.
+  q_prime_given_cur = 0.0
+  q_cur_given_prime = 0.0
 
   idx_size = Int(size(log_q_ratio_data, 1)/2)
 
@@ -408,15 +408,18 @@ function log_q_ratio_movements(log_q_ratio_data)
   return(log_q_ratio)
 end
 
-function generate_new_movement(combi_array_cur, position, t, epi_params, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict, tracker)
+function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, epi_params, movement_record, movement_dict, f_to_p_structs::Vector{Farm_Parish_info}, ids_to_pos_dict, tracker)
 
-  combi_array_prime = deepcopy(combi_array_cur)
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+
   movement_record_prime = deepcopy(movement_record)
 
   ### Scope ###
 
   lower_t = t
-  upper_t = size(combi_array_cur[1], 2) #T
+  upper_t = size(DATA_res_and_track_cur[1], 2) #T
   changed_h_positions = [position] # extended dependent on movement choice
   h_llh_indices = 1:13
 
@@ -425,9 +428,9 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
   ####################
 
   # :cS_Moves, :cE_Moves, :cI_Moves
-  states = combi_array_prime[1][position, t, [7,8,9]]
+  states = DATA_res_and_track_prime[1][position, t, [7,8,9]]
   # :sus_off, :exp_off, :inf_off
-  moves_off = combi_array_prime[2][position, t, [7,8,9]]
+  moves_off = DATA_res_and_track_prime[2][position, t, [7,8,9]]
 
   total_moves = sum(moves_off)
 
@@ -485,7 +488,7 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
   ########################
 
   # :sus_off, :exp_off, :inf_off
-  combi_array_prime[2][position, t, [7,8,9]] = new_move_off
+  DATA_res_and_track_prime[2][position, t, [7,8,9]] = new_move_off
 
   movement_record_prime[move_record_rows, :] .= moves_data_prime
 
@@ -500,10 +503,10 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
   for j in 1:size(on_cph_row_ids, 1)
 
       if on_cph_row_ids[j] > 0
-        differences[j, 1:6] = [Array(moves_data_cur[j, 7:9]) - Array(moves_data_prime[j, 7:9]) ;
-                              on_cph_row_ids[j] ;
-                              ids_to_pos_dict[on_cph_row_ids[j]] ;
-                              f_to_p_dict[ids_to_pos_dict[on_cph_row_ids[j]]][2] ]
+        differences[j, 1:6] = [ Array(moves_data_cur[j, 7:9]) - Array(moves_data_prime[j, 7:9]) ;
+                                on_cph_row_ids[j] ;
+                                ids_to_pos_dict[on_cph_row_ids[j]] ;
+                                f_to_p_structs[ ids_to_pos_dict[ on_cph_row_ids[j] ] ].parish_position ]
 
 
         changed_h_positions = [changed_h_positions ; differences[j, 5]]
@@ -518,7 +521,7 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
   ### Calculate the parish level differences ###
   ##############################################
 
-  affected_parishes = unique([differences_oi[:, 6]; f_to_p_dict[position][2]])
+  affected_parishes = unique([differences_oi[:, 6]; f_to_p_structs[position].parish_position ])
 
   # :Δ_pS, :Δ_pE, :Δ_pI, :parish_pos
   parish_differences = fill(0, size(affected_parishes, 1), 4)
@@ -533,8 +536,8 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
       end
     end
 
-    if par == f_to_p_dict[position][2] #off_p_id
-      Δ_off = combi_array_prime[2][position, t, [7,8,9]] - combi_array_cur[2][position, t, [7,8,9]]
+    if par == f_to_p_structs[position].parish_position #off_p_id
+      Δ_off = DATA_res_and_track_prime[2][position, t, [7,8,9]] - DATA_res_and_track_cur[2][position, t, [7,8,9]]
       parish_differences[idx, 1:3] -= Δ_off
     end
 
@@ -563,17 +566,17 @@ function generate_new_movement(combi_array_cur, position, t, epi_params, movemen
 
   scope = Scope(lower_t, upper_t, changed_h_positions_oi, h_llh_indices)
 
-  return(combi_array_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, tracker)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, tracker)
 end
 
-function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, movement_dict, f_to_p_dict, ids_to_pos_dict)
+function propose_AddRem_Movements(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, movement_record, movement_dict, f_to_p_structs::Vector{Farm_Parish_info}, ids_to_pos_dict)
 
   ### Choose a farm and a timestep ###
 
-  farms_with_permutable_movements_at_t = combi_array_cur[2][( ((combi_array_cur[1][:, :, 7] .> 0 .&& combi_array_cur[1][:, :, 8] .> 0) .||
-                                                              (combi_array_cur[1][:, :, 7] .> 0 .&& combi_array_cur[1][:, :, 9] .> 0) .||
-                                                              (combi_array_cur[1][:, :, 8] .> 0 .&& combi_array_cur[1][:, :, 9] .> 0)) .&&
-                                                              (combi_array_cur[2][:, :, 7] .> 0 .|| combi_array_cur[2][:, :, 8] .> 0 .|| combi_array_cur[2][:, :, 9] .> 0) ),
+  farms_with_permutable_movements_at_t = DATA_res_and_track_cur[2][( ((DATA_res_and_track_cur[1][:, :, 7] .> 0 .&& DATA_res_and_track_cur[1][:, :, 8] .> 0) .||
+                                                              (DATA_res_and_track_cur[1][:, :, 7] .> 0 .&& DATA_res_and_track_cur[1][:, :, 9] .> 0) .||
+                                                              (DATA_res_and_track_cur[1][:, :, 8] .> 0 .&& DATA_res_and_track_cur[1][:, :, 9] .> 0)) .&&
+                                                              (DATA_res_and_track_cur[2][:, :, 7] .> 0 .|| DATA_res_and_track_cur[2][:, :, 8] .> 0 .|| DATA_res_and_track_cur[2][:, :, 9] .> 0) ),
                                                             [1,3]]
   # Extract all farms that have atleast 2 cStates and at least 1 movement.
 
@@ -583,7 +586,7 @@ function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, 
   t, position = farms_with_permutable_movements_at_t[rand(1:size(farms_with_permutable_movements_at_t, 1)), :]
 
 
-  AddRem_Movements_track = [position, t, 0, 0, -999, -999, -999, -999, -999, -999, -999, -999, -999]
+  AddRem_Movements_track = [position, t, 0., 0., -999., -999., -999., -999., -999., -999., -999., -999., -999.]
                       # :arMoves_position, :arMoves_t, :arMoves_is_accepted, :arMoves_reason,
                                          # :arMoves_Soff_before, :arMoves_Eoff_before, :arMoves_Ioff_before,
                                          # :arMoves_Soff_after, :arMoves_Eoff_after, :arMoves_Ioff_after,
@@ -591,23 +594,23 @@ function propose_AddRem_Movements(combi_array_cur, epi_params, movement_record, 
 
   ### Generate a new set of movements ###
 
-  combi_array_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, AddRem_Movements_track = generate_new_movement(combi_array_cur, position, t, epi_params, movement_record,
-                                                                                                                            movement_dict, f_to_p_dict, ids_to_pos_dict, AddRem_Movements_track)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, AddRem_Movements_track = generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, epi_params, movement_record,
+                                                                                                                            movement_dict, f_to_p_structs, ids_to_pos_dict, AddRem_Movements_track)
 
   ### Calculate the update ###
 
-  combi_array_prime, valid = update_data_AddRem_Movement(combi_array_cur, scope, position, combi_array_prime, epi_params, differences_oi, parish_differences)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, valid = update_data_AddRem_Movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, position, DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, differences_oi, parish_differences)
 
   if valid != 1
     log_q_ratio = -Inf
     AddRem_Movements_track[4] = 2
-    return(combi_array_cur, log_q_ratio, scope, movement_record, AddRem_Movements_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, scope, movement_record, AddRem_Movements_track)
   end
 
   ### Calculate the log q ratio (proposal density ratio) ###
   log_q_ratio = log_q_ratio_movements(log_q_ratio_data)
 
-  return(combi_array_prime, log_q_ratio, scope, movement_record_prime, AddRem_Movements_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, movement_record_prime, AddRem_Movements_track)
 end
 
 
@@ -615,14 +618,14 @@ end
 ### AddRem Environmental Pressure ###
 #####################################
 
-function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
+function propose_AddRem_penv(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   ### Choose a farm and a timestep ###
 
-  farms_with_env_pressure_at_t = combi_array_cur[4][( (combi_array_cur[4][:, :, 6] .> 0  .||
-                                                     combi_array_cur[4][:, :, 12] .> 0 .||
-                                                     combi_array_cur[4][:, :, 19] .> 0) .&&
-                                                     combi_array_cur[4][:, :, 1] .< 360 ),
+  farms_with_env_pressure_at_t = DATA_pers_and_parish_cur[2][( (DATA_pers_and_parish_cur[2][:, :, 6] .> 0  .||
+                                                     DATA_pers_and_parish_cur[2][:, :, 12] .> 0 .||
+                                                     DATA_pers_and_parish_cur[2][:, :, 19] .> 0) .&&
+                                                     DATA_pers_and_parish_cur[2][:, :, 1] .< 360 ),
                                                    [1,3]]
   # Extract all farms that have p_env_t > 0 or pcI_t > 0 or pbI_t > 0
 
@@ -632,7 +635,7 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
 
   ### Generate the update ###
 
-  penv_data = combi_array[4][p_position, t, [6,12,16,17,18,19]]
+  penv_data = DATA_pers_and_parish_cur[2][p_position, t, [6,12,16,17,18,19]]
   # pcI_t, pbI_t,    remaining_pressure_t, new_pressure_t,    scaling, p_env_prev_t
 
   ϵ = epi_params[5]
@@ -642,7 +645,7 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
 
   Δs = [propose_r_pressure_t - penv_data[3],  propose_n_pressure_t - penv_data[4]]
 
-  AddRem_penv_track = [p_position, t, 0, 0, Δs[1], Δs[2], -999, -999, -999, -999, -999, -999]
+  AddRem_penv_track = [p_position, t, 0., 0., Δs[1], Δs[2], -999., -999., -999., -999., -999., -999.]
                       # :arpenv_position, :arpenv_t, :arpenv_is_accepted, :arpenv_reason, :arpenv_Δr, :arpenv_Δn,
                                         # :arpenv_r_pres_before, :arpenv_n_pres_before, :arpenv_r_pres_after, :arpenv_n_pres_after,
                                         # :arpenv_p_env_prev, :arpenv_pI
@@ -651,19 +654,19 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
     log_q_ratio = -Inf
     AddRem_penv_track[4] = 3
 
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_penv_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_penv_track)
   end
 
 
   ### Calculate the update ###
 
-  combi_array_prime, scope, valid, AddRem_penv_track = update_data_AddRem_penv(combi_array_cur, p_position, t, Δs, epi_params, f_to_p_dict, ids_to_pos_dict, AddRem_penv_track)
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_penv_track = update_data_AddRem_penv(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p_position, t, Δs, epi_params, f_to_p_structs, ids_to_pos_dict, AddRem_penv_track)
 
   if valid != 1
     log_q_ratio = -Inf
     AddRem_penv_track[4] = 2
 
-    return(combi_array_cur, log_q_ratio, [0,0,0,0], AddRem_penv_track)
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_penv_track)
   end
 
 
@@ -677,7 +680,7 @@ function propose_AddRem_penv(combi_array_cur, epi_params, f_to_p_dict)
 
   log_q_ratio = (q_cur_r_press_given_prime + q_cur_n_press_given_prime) - (q_prime_r_press_given_cur + q_prime_n_press_given_cur)
 
-  return(combi_array_prime, log_q_ratio, scope, AddRem_penv_track)
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_penv_track)
 end
 
 
@@ -755,7 +758,7 @@ function propose_params(N_its, results, other_res,
 
       draw = mixture_less(3, λ, log_params_cur[oi])
 
-      mixture = 0
+      mixture = 0.0
     end
 
   ##########################
@@ -784,7 +787,7 @@ function propose_params(N_its, results, other_res,
     log_params_draw[oi] = draw
 
   #log_params_draw, log_q_ratio, mixture, λ
-  return(log_params_draw, 0, mixture, λ)
+  return(log_params_draw, 0.0, mixture, λ)
 end
 
 ###################################
@@ -792,7 +795,7 @@ end
 ###################################
 
 function propose_epidemic_params(N_its, results, other_res,
-                                  it, log_params_cur, combi_array_cur, f_to_p_dict,
+                                  it, log_params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur, f_to_p_structs::Vector{Farm_Parish_info},
                                   n_tune, m, λ, d, covarM)
 
   ##########################
@@ -807,12 +810,12 @@ function propose_epidemic_params(N_its, results, other_res,
   ### Update the data ###
   #######################
 
-    scope = Scope(1, 360, 1:size(combi_array[1], 1), [3,4,8,9])
+    scope = Scope(1, 360, 1:size(DATA_res_and_track_cur[1], 1), [3,4,8,9])
     # lower_t, upper_t, h_pos_ids, h_llh_indicies
 
-    combi_array_prime = update_pers_EPIDEMIC(combi_array_cur, log_params_draw, f_to_p_dict, scope)
+    DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_params_draw, f_to_p_structs, scope)
 
-  return(log_params_draw, 0, mixture, λ, combi_array_prime, scope)
+  return(log_params_draw, 0.0, mixture, λ, DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope)
 end
 
 ####################################
@@ -820,7 +823,7 @@ end
 ####################################
 
 function propose_detection_params(N_its, results, other_res,
-                                  it, log_params_cur, combi_array_cur, f_to_p_dict,
+                                  it, log_params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur, f_to_p_structs,
                                   n_tune, m, λ, d, covarM)
 
   ##########################
@@ -831,8 +834,8 @@ function propose_detection_params(N_its, results, other_res,
                                                               it, log_params_cur, [6,7], 5,
                                                               n_tune, m, λ, d, covarM)
 
-    scope = Scope(1, 360, 1:size(combi_array[1], 1), [5,6])
+    scope = Scope(1, 360, 1:size(DATA_res_and_track_cur[1], 1), [5,6])
     # lower_t, upper_t, h_pos_ids, h_llh_indices
 
-  return(log_params_draw, 0, mixture, λ, combi_array_cur, scope)
+  return(log_params_draw, 0.0, mixture, λ, DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope)
 end

@@ -43,3 +43,15 @@ using StatsPlots; gr()
 using BenchmarkTools
 using KernelDensity
 import StatsPlots: cornerplot, cornerplot!
+
+
+### STRUCTURES
+
+struct Farm_Parish_info
+  farm_UID::Int64
+  farm_position::Int64
+  parish_UID::Int64
+  parish_position::Int64
+  parish_members_UIDs::Vector{Int64}
+  parish_members_positions::Vector{Int64}
+end

@@ -335,6 +335,28 @@ end
 
 f_to_p_dict
 
+struct Farm_Parish_info
+  farm_UID::Int64
+  farm_position::Int64
+  parish_UID::Int64
+  parish_position::Int64
+  parish_members_UIDs::Vector{Int64}
+  parish_members_positions::Vector{Int64}
+end
+
+f_to_p_structs = Array{Farm_Parish_info}(undef, length(f_to_p_dict))
+
+for i in 1:length(f_to_p_dict)
+
+  f_to_p_structs[i] = Farm_Parish_info(f_to_p_dict[i][5],
+                                       i,
+                                       f_to_p_dict[i][1],
+                                       f_to_p_dict[i][2],
+                                       f_to_p_dict[i][3],
+                                       f_to_p_dict[i][4])
+end
+
+f_to_p_structs
 
 ####################
 ### Create the farm_uid to position Dictionary
@@ -391,7 +413,7 @@ record_of_movements_oi = record_of_movements_temp[(record_of_movements_temp[:,2]
 ### Movement dictionary
 ###########
 
-dict_of_movements = Dict{Tuple{Int64, Int64}, Array}()
+dict_of_movements = Dict{Tuple{Int64, Int64}, Vector{Int64}}()
 
 for pos in 1:size(uids_oi, 1)
   for t in 1:360
@@ -402,7 +424,7 @@ end
 dict_of_movements
 
 
-dict_of_movements_out = Dict{Tuple{Int64, Int64, Int64}, Array}()
+dict_of_movements_out = Dict{Tuple{Int64, Int64, Int64}, Vector{Int64}}()
 
 for t in 1:360
   for pos in 1:size(uids_oi, 1)
@@ -423,7 +445,8 @@ for t in 1:360
     rom = record_of_movements_oi[dict_of_movements_out[(-1, t, pos)], :]
 
     if (size(rom, 1) > 0)
-      println("WAS: ", track_3D_oi[pos, t, 10:12], "AND NOW IS: ", sum.(eachcol(rom[:, 7:9])))
+      println("WAS: ", track_3D_oi[pos, t, 10:12])
+      println(" AND NOW IS: ", sum.(eachcol(rom[:, 7:9])))
 
       track_3D_oi[pos, t, 10:12] = sum.(eachcol(rom[:, 7:9]))
     end
@@ -445,6 +468,19 @@ ids_to_pos_dict
 
 dict_of_movements
 
+
+
+array1 = Array{Int64, 3}(combi_array[1])
+array2 = Array{Int64, 3}(combi_array[2])
+array3 = Array{Float64, 3}(combi_array[3])
+array4 = Array{Float64, 3}(combi_array[4])
+
+combi_array_unnamed = Union{Array{Int},Array{Float64}}[array1, array2, array3, array4]
+
+DATA_res_and_track = [array1, array2]
+DATA_pers_and_parish = [array3, array4]
+
+
 ####################
 ### Save Results ###
 ####################
@@ -453,10 +489,17 @@ save("Data/Set 1/res_3D_oi.jld2", "array", res_3D_oi)
 
 save("Data/Set 1/combi_array.jld2", "array", combi_array)
 
+save("Data/Set 1/combi_array_unnamed.jld2", "array", combi_array_unnamed)
+
+save("Data/Set 1/DATA_res_and_track.jld2", "array", DATA_res_and_track)
+save("Data/Set 1/DATA_pers_and_parish.jld2", "array", DATA_pers_and_parish)
+
 save("Data/Set 1/record_of_movements_oi.jld2", "array", record_of_movements_oi)
 
 
 save("Data/Set 1/f_to_p_dict.jld2", "dict", f_to_p_dict)
+
+save("Data/Set 1/f_to_p_structs.jld2", "struct", f_to_p_structs)
 
 save("Data/Set 1/ids_to_pos_dict.jld2", "dict", ids_to_pos_dict)
 

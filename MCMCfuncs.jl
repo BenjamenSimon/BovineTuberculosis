@@ -184,6 +184,8 @@ function metropolis_hastings_step_aug(proposal_func, posterior_func,
 
   DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, dataaug_track = proposal_func(DATA_res_and_track_cur, DATA_pers_and_parish_cur, params_cur, f_to_p_structs)
 
+  println(" ", "log_q_ratio = ", log_q_ratio)
+
   # println("Proposed update")
 
   # Early return: Update is invalid
@@ -195,7 +197,7 @@ function metropolis_hastings_step_aug(proposal_func, posterior_func,
 
   # Update llh arrays
 
-  llh_array_prime, p_env_llh_array_prime = update_llh_array_ALL_excindvmoves(scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur, movements_record, params_cur, movement_dict, f_to_p_structs)
+  llh_array_prime, p_env_llh_array_prime = update_llh_array_ALL_excindvmoves(scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track_prime, DATA_pers_and_parish_prime, movements_record, params_cur, movement_dict, f_to_p_structs)
 
   # println("Updated llh")
 
@@ -320,7 +322,7 @@ function Initialise(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params
   llh_array_init = zeros(size(DATA_res_and_track_cur[1], 1), 360, 13)
   p_env_llh_array_init = zeros(size(DATA_pers_and_parish_cur[2], 1), 360, 2)
 
-  scope_init = Scope(1, 360, 1:size(DATA_res_and_track_cur[1], 1), Vector(1:13))
+  scope_init = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), Vector(1:13))
 
   DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
   DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
@@ -457,7 +459,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
 
   p_env_llh_array_init = zeros(size(DATA_pers_and_parish_cur[2], 1), 360, 2)
 
-  global_scope = Scope(1, 360, 1:size(DATA_res_and_track_cur[1], 1), Vector(1:13))
+  global_scope = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), Vector(1:13))
 
   llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(global_scope,
                                                             llh_array_init, p_env_llh_array_init,

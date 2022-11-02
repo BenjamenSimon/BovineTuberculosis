@@ -70,88 +70,68 @@ epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 ### Testing the Updaters ###
 ############################
 
-r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
+r1, or1, ar1, tr1, ut1 = Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, false],
                           DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
                           moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.05, 45, 0.1, 15],
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 15],
                           dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                           ids_to_pos_dict = ids_to_pos_dict)
 
-CSV.write("Inference/Test1/res_infpars.csv", r1, header = true)
-CSV.write("Inference/Test1/other_res_infpars.csv", or1, header = true)
-CSV.write("Inference/Test1/aug_res_infpars.csv", ar1, header = true)
-CSV.write("Inference/Test1/tuning_res_infpars.csv", tr1, header = true)
-CSV.write("Inference/Test1/update_tracker_infpars.csv", ut1, header = true)
+CSV.write("Inference/Test 1/res_infpars.csv", r1, header = true)
+CSV.write("Inference/Test 1/other_res_infpars.csv", or1, header = true)
+CSV.write("Inference/Test 1/aug_res_infpars.csv", ar1, header = true)
+CSV.write("Inference/Test 1/tuning_res_infpars.csv", tr1, header = true)
+CSV.write("Inference/Test 1/update_tracker_infpars.csv", ut1, header = true)
 
 r2, or2, ar2, tr2, ut2 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
                           DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.05, 45, 0.1, 5],
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
                           dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
                           ids_to_pos_dict = ids_to_pos_dict)
 
+CSV.write("Inference/Test 2/res_detpars.csv", r2, header = true)
+CSV.write("Inference/Test 2/other_res_detpars.csv", or2, header = true)
+CSV.write("Inference/Test 2/aug_res_detpars.csv", ar2, header = true)
+CSV.write("Inference/Test 2/tuning_res_detpars.csv", tr2, header = true)
+CSV.write("Inference/Test 2/update_tracker_detpars.csv", ut2, header = true)
+
+r3, or3, ar3, tr3, ut3 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, true], data_aug_infer = [false, false, false, false, false, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 3/res_allpars.csv", r3, header = true)
+CSV.write("Inference/Test 3/other_res_allpars.csv", or3, header = true)
+CSV.write("Inference/Test 3/aug_res_allpars.csv", ar3, header = true)
+CSV.write("Inference/Test 3/tuning_res_allpars.csv", tr3, header = true)
+CSV.write("Inference/Test 3/update_tracker_allpars.csv", ut3, header = true)
+
+r4, or4, ar4, tr4, ut4 = Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [true, false], data_aug_infer = [true, false, false, false, false, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 4/res_infpars_mSE.csv", r4, header = true)
+CSV.write("Inference/Test 4/other_res_infpars_mSE.csv", or4, header = true)
+CSV.write("Inference/Test 4/aug_res_infpars_mSE.csv", ar4, header = true)
+CSV.write("Inference/Test 4/tuning_res_infpars_mSE.csv", tr4, header = true)
+CSV.write("Inference/Test 4/update_tracker_infpars_mSE.csv", ut4, header = true)
+
+r5, or5, ar5, tr5, ut5 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, true, false, false, false, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 5/res_infpars_mEI.csv", r5, header = true)
+CSV.write("Inference/Test 5/other_res_infpars_mEI.csv", or5, header = true)
+CSV.write("Inference/Test 5/aug_res_infpars_mEI.csv", ar5, header = true)
+CSV.write("Inference/Test 5/tuning_res_infpars_mEI.csv", tr5, header = true)
+CSV.write("Inference/Test 5/update_tracker_infpars_mEI.csv", ut5, header = true)
 
 
-Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [true, false, false, false, false, false, false, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, true, false, false, false, false, false, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, true, false, false, false, false, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, false, true, false, false, false, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, false, false, true, false, false, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, false], data_aug_infer = [false, false, false, false, false, true, false, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false], data_aug_infer = [false, false, false, false, false, false, true, false],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
-
-
-
-Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false], data_aug_infer = [false, false, false, false, false, false, false, true],
-                        DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
-                        params_init = epi_params_true, tuning = [0.01, 0.02, 0.02, 0.03],
-                        dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                        ids_to_pos_dict = ids_to_pos_dict)
 
 #################################
 ### Benchmarking the Updaters ###

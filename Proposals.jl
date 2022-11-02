@@ -35,14 +35,21 @@ function propose_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_p
 
   t, position = farms_with_SE_events_at_t[rand(1:size(farms_with_SE_events_at_t, 1)), :]
 
+  println("  ", "t = ", t)
+  println("  ", "position = ", position)
+
   Δ = 0
   while Δ == 0
-    Δ = rand(Poisson(3))
+    # Δ = rand(Poisson(3))
+    Δ = 1
     sgn_Δ = rand([-1, 1])
     Δ = sgn_Δ * Δ
   end
 
+  println("   ", "t + Δ = ", t + Δ)
+
   if 360 < t + Δ || t + Δ <= 0
+    println("   ", "Out of bounds! ")
     log_q_ratio = -Inf
     Move_SE_track = [position, t, 0., 4., Δ, 1.]
                    # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
@@ -67,6 +74,9 @@ function propose_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_p
   num_farms_with_SE_events_at_t = size(farms_with_SE_events_at_t, 1)
 
   num_farms_with_SE_events_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[2][:, :, 13] .> 0), [1,3]], 1)
+
+  println("   ", "num_farms_with_SE_events_at_t = ", num_farms_with_SE_events_at_t)
+  println("   ", "num_farms_with_SE_events_at_t_prime = ", num_farms_with_SE_events_at_t_prime)
 
   log_q_ratio = log(num_farms_with_SE_events_at_t / num_farms_with_SE_events_at_t_prime)
 
@@ -810,7 +820,7 @@ function propose_epidemic_params(N_its, results, other_res,
   ### Update the data ###
   #######################
 
-    scope = Scope(1, 360, 1:size(DATA_res_and_track_cur[1], 1), [3,4,8,9])
+    scope = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), [3,4,8,9])
     # lower_t, upper_t, h_pos_ids, h_llh_indicies
 
     DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_params_draw, f_to_p_structs, scope)
@@ -834,7 +844,7 @@ function propose_detection_params(N_its, results, other_res,
                                                               it, log_params_cur, [6,7], 5,
                                                               n_tune, m, λ, d, covarM)
 
-    scope = Scope(1, 360, 1:size(DATA_res_and_track_cur[1], 1), [5,6])
+    scope = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), [5,6])
     # lower_t, upper_t, h_pos_ids, h_llh_indices
 
   return(log_params_draw, 0.0, mixture, λ, DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope)

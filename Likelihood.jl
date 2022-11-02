@@ -6,7 +6,7 @@
 struct Scope
   t_start::Int64
   t_end::Int64
-  h_positions::UnitRange{Int64}
+  h_positions::Vector{Int64}
   h_llh_indices::Vector{Int64}
 end
 
@@ -563,7 +563,7 @@ end
   return(llh_array_new, p_env_llh_array_new)
 end
 
-@views function update_llh_array_DETECTION(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+@views function update_llh_array_DETECTION(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, DATA_pers_and_parish, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   t_start = scope.t_start
   t_end = scope.t_end

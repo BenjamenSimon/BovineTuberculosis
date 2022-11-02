@@ -116,12 +116,14 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   A = convert(Int, (1 - sgnΔ)/2)
   B = 1-A
 
+  println("    ", "num_SE_moved = ", num_SE_moved)
+
   ### Scope ###
 
   lower_t = (t+(A*Δ))
   upper_t = (t+(B*Δ))
   h_positions = [position]
-  h_llh_indices = 1:13
+  h_llh_indices = Vector(1:13)
 
   scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 
@@ -156,9 +158,15 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   ### Quick check for validity
   ###############
 
+  println("    ", "Current data:")
+  println("    ", DATA_res_and_track_cur[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
+  println("    ", "Updated data:")
+  println("    ", DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
+
   posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    println("    ", "INVALID UPDATE!")
     return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0)
                              # invalid
   end
@@ -199,7 +207,7 @@ function update_data_Move_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   lower_t = (t+(A*Δ))
   upper_t = (t+(B*Δ))
   h_positions = [position]
-  h_llh_indices = 1:13
+  h_llh_indices = Vector(1:13)
 
   scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 
@@ -279,7 +287,7 @@ function update_data_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   lower_t = t
   upper_t = size(DATA_res_and_track_cur[1], 2) #T
   h_positions = [position]
-  h_llh_indices = 1:13
+  h_llh_indices = Vector(1:13)
 
   scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 
@@ -354,7 +362,7 @@ function update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   lower_t = t
   upper_t = size(DATA_res_and_track_cur[1], 2) #T
   h_positions = [position]
-  h_llh_indices = 1:13
+  h_llh_indices = Vector(1:13)
 
   scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 
@@ -437,7 +445,7 @@ function update_data_AddRem_Det(DATA_res_and_track_cur, DATA_pers_and_parish_cur
   lower_t = t
   upper_t = size(DATA_res_and_track_cur[1], 2) #T
   h_positions = [position]
-  h_llh_indices = 1:13
+  h_llh_indices = Vector(1:13)
 
   scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 
@@ -527,7 +535,7 @@ function update_data_AddRem_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_
   lower_t = t
   upper_t = size(DATA_res_and_track_cur[1], 2) #T
   h_positions = [position]
-  h_llh_indices = 1:13
+  h_llh_indices = Vector(1:13)
 
   scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 

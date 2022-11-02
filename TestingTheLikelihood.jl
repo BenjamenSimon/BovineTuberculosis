@@ -87,7 +87,7 @@ b_birth_death_llh_i_t(;position = 1, t = 353, combi_array, epi_params = epi_para
 p_env_llh_k_t(;p_position = 1, t = 353, combi_array, epi_params = epi_params_true)
 
 
-scope = [1, 360, 1:size(combi_array[1], 1), 1:13]
+scope = [1, 360, Vector(1:size(combi_array[1]), 1), 1:13]
 
 llh_array_cur, p_env_llh_array_cur = update_llh_array_ALL(scope, llh_array, p_env_llh_array, combi_array, record_of_movements,
                                                           epi_params_true, dict_of_movements, f_to_p_dict)
@@ -142,7 +142,7 @@ end
 ### Benchmarking the likelihood with not named arrays ###
 #########################################################
 
-scope = Scope(1, 360, 1:size(combi_array[1], 1), [3,4,8,9])
+scope = Scope(1, 360, Vector(1:size(combi_array[1], 1)), [3,4,8,9])
 
 
 llh_array = zeros(size(combi_array[1], 1), 360, 13)

@@ -184,7 +184,7 @@ function metropolis_hastings_step_aug(proposal_func, posterior_func,
 
   DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, dataaug_track = proposal_func(DATA_res_and_track_cur, DATA_pers_and_parish_cur, params_cur, f_to_p_structs)
 
-  println(" ", "log_q_ratio = ", log_q_ratio)
+  # println(" ", "log_q_ratio = ", log_q_ratio)
 
   # println("Proposed update")
 

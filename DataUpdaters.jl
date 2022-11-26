@@ -116,7 +116,7 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   A = convert(Int, (1 - sgnΔ)/2)
   B = 1-A
 
-  println("    ", "num_SE_moved = ", num_SE_moved)
+  # println("    ", "num_SE_moved = ", num_SE_moved)
 
   ### Scope ###
 
@@ -158,15 +158,15 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   ### Quick check for validity
   ###############
 
-  println("    ", "Current data:")
-  println("    ", DATA_res_and_track_cur[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
-  println("    ", "Updated data:")
-  println("    ", DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
+  # println("    ", "Current data:")
+  # println("    ", DATA_res_and_track_cur[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
+  # println("    ", "Updated data:")
+  # println("    ", DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
 
   posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
-    println("    ", "INVALID UPDATE!")
+    # println("    ", "INVALID UPDATE!")
     return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0)
                              # invalid
   end
@@ -633,8 +633,6 @@ function update_data_AddRem_Movement(DATA_res_and_track_cur, DATA_pers_and_paris
   T = scope.t_end
   h_positions = scope.h_positions
   h_llh_indices = scope.h_llh_indices
-
-  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
 
   ##########################################
   ### Update the farm that moved animals ###

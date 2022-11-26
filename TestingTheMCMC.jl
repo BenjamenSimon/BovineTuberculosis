@@ -83,7 +83,7 @@ CSV.write("Inference/Test 1/aug_res_infpars.csv", ar1, header = true)
 CSV.write("Inference/Test 1/tuning_res_infpars.csv", tr1, header = true)
 CSV.write("Inference/Test 1/update_tracker_infpars.csv", ut1, header = true)
 
-r2, or2, ar2, tr2, ut2 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
+r2, or2, ar2, tr2, ut2 = Blk_Adaptive_RWM_MCMC(;N_its = 100000, infer_block = [false, true], data_aug_infer = [false, false, false, false, false, false, false, false],
                           DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                           params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
                           dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
@@ -107,7 +107,7 @@ CSV.write("Inference/Test 3/aug_res_allpars.csv", ar3, header = true)
 CSV.write("Inference/Test 3/tuning_res_allpars.csv", tr3, header = true)
 CSV.write("Inference/Test 3/update_tracker_allpars.csv", ut3, header = true)
 
-r4, or4, ar4, tr4, ut4 = Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [true, false], data_aug_infer = [true, false, false, false, false, false, false, false],
+r4, or4, ar4, tr4, ut4 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [true, false, false, false, false, false, false, false],
                           DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
                           params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
                           dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
@@ -118,6 +118,7 @@ CSV.write("Inference/Test 4/other_res_infpars_mSE.csv", or4, header = true)
 CSV.write("Inference/Test 4/aug_res_infpars_mSE.csv", ar4, header = true)
 CSV.write("Inference/Test 4/tuning_res_infpars_mSE.csv", tr4, header = true)
 CSV.write("Inference/Test 4/update_tracker_infpars_mSE.csv", ut4, header = true)
+
 
 r5, or5, ar5, tr5, ut5 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, true, false, false, false, false, false, false],
                           DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
@@ -130,6 +131,70 @@ CSV.write("Inference/Test 5/other_res_infpars_mEI.csv", or5, header = true)
 CSV.write("Inference/Test 5/aug_res_infpars_mEI.csv", ar5, header = true)
 CSV.write("Inference/Test 5/tuning_res_infpars_mEI.csv", tr5, header = true)
 CSV.write("Inference/Test 5/update_tracker_infpars_mEI.csv", ut5, header = true)
+
+
+r6, or6, ar6, tr6, ut6 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, true, false, false, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 6/res_infpars_mEI.csv", r6, header = true)
+CSV.write("Inference/Test 6/other_res_infpars_mEI.csv", or6, header = true)
+CSV.write("Inference/Test 6/aug_res_infpars_mEI.csv", ar6, header = true)
+CSV.write("Inference/Test 6/tuning_res_infpars_mEI.csv", tr6, header = true)
+CSV.write("Inference/Test 6/update_tracker_infpars_mEI.csv", ut6, header = true)
+
+
+r7, or7, ar7, tr7, ut7 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, true, false, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 7/res_infpars_mEI.csv", r7, header = true)
+CSV.write("Inference/Test 7/other_res_infpars_mEI.csv", or7, header = true)
+CSV.write("Inference/Test 7/aug_res_infpars_mEI.csv", ar7, header = true)
+CSV.write("Inference/Test 7/tuning_res_infpars_mEI.csv", tr7, header = true)
+CSV.write("Inference/Test 7/update_tracker_infpars_mEI.csv", ut7, header = true)
+
+
+
+r12, or12, ar12, tr12, ut12 = Blk_Adaptive_RWM_MCMC(;N_its = 10000, infer_block = [false, true], data_aug_infer = [false, false, false, false, true, false, false, false],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 12/res_infpars_mEI.csv", r12, header = true)
+CSV.write("Inference/Test 12/other_res_infpars_mEI.csv", or12, header = true)
+CSV.write("Inference/Test 12/aug_res_infpars_mEI.csv", ar21, header = true)
+CSV.write("Inference/Test 12/tuning_res_infpars_mEI.csv", tr12, header = true)
+CSV.write("Inference/Test 12/update_tracker_infpars_mEI.csv", ut12, header = true)
+
+
+
+
+
+r15, or15, ar15, tr15, ut15 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, false], data_aug_infer = [false, false, false, false, false, false, false, true],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish, moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.05, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Test 15/res_infpars_mEI.csv", r15, header = true)
+CSV.write("Inference/Test 15/other_res_infpars_mEI.csv", or15, header = true)
+CSV.write("Inference/Test 15/aug_res_infpars_mEI.csv", ar15, header = true)
+CSV.write("Inference/Test 15/tuning_res_infpars_mEI.csv", tr15, header = true)
+CSV.write("Inference/Test 15/update_tracker_infpars_mEI.csv", ut15, header = true)
+
+
+
+
+
+
+
+
 
 
 

@@ -35,8 +35,8 @@ function propose_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_p
 
   t, position = farms_with_SE_events_at_t[rand(1:size(farms_with_SE_events_at_t, 1)), :]
 
-  println("  ", "t = ", t)
-  println("  ", "position = ", position)
+  # println("  ", "t = ", t)
+  # println("  ", "position = ", position)
 
   Δ = 0
   while Δ == 0
@@ -46,10 +46,10 @@ function propose_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_p
     Δ = sgn_Δ * Δ
   end
 
-  println("   ", "t + Δ = ", t + Δ)
+  # println("   ", "t + Δ = ", t + Δ)
 
   if 360 < t + Δ || t + Δ <= 0
-    println("   ", "Out of bounds! ")
+    # println("   ", "Out of bounds! ")
     log_q_ratio = -Inf
     Move_SE_track = [position, t, 0., 4., Δ, 1.]
                    # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
@@ -75,8 +75,8 @@ function propose_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_p
 
   num_farms_with_SE_events_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[2][:, :, 13] .> 0), [1,3]], 1)
 
-  println("   ", "num_farms_with_SE_events_at_t = ", num_farms_with_SE_events_at_t)
-  println("   ", "num_farms_with_SE_events_at_t_prime = ", num_farms_with_SE_events_at_t_prime)
+  # println("   ", "num_farms_with_SE_events_at_t = ", num_farms_with_SE_events_at_t)
+  # println("   ", "num_farms_with_SE_events_at_t_prime = ", num_farms_with_SE_events_at_t_prime)
 
   log_q_ratio = log(num_farms_with_SE_events_at_t / num_farms_with_SE_events_at_t_prime)
 
@@ -716,6 +716,9 @@ function calculate_delta_n(n_tune, acc_prop)
     delta_n = min(0.05, 1/sqrt(n_tune))
   end
 
+  println("   ", "acc_prop = ", acc_prop)
+  println("   ", "delta_n = ", delta_n)
+
   return(delta_n)
 end
 
@@ -841,7 +844,7 @@ function propose_detection_params(N_its, results, other_res,
   ##########################
 
     log_params_draw, log_q_ratio, mixture, λ = propose_params(N_its, results, other_res,
-                                                              it, log_params_cur, [6,7], 5,
+                                                              it, log_params_cur, [6,7], 6,
                                                               n_tune, m, λ, d, covarM)
 
     scope = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), [5,6])

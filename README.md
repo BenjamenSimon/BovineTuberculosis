@@ -30,11 +30,11 @@ The model is a full-likelihood discrete-time SEI(R) population-level meta-popula
 
 Each farm is a unit with its own population of cattle and badgers, and their own SEI process, with removals occuring through a test-and-cull process for the cattle. The farms are then connects into a group called a parish via a background environemental reservoir for disease which represents for instance shared grazing pastures. All the farms in the country are then connected via cattle movements.
 
-![Farm structure](images/bTB_Parish_Diagram.pdf)
+![Farm structure](images/bTB_Parish_Diagram.png)
 
 There are a lot of events to manage in a given time step, including the SEI process, the testing and removal, the movements, and the births and deaths. In a continuous time model these processes would all occur concurrently, but in a discrete time process I have had to apply a heirarchy to ensure the model remain consistent and to manage the computational costs of such a large problem. The following diagram represent a 1-week time step of the model:
 
-![Timestep](images/Model_Sim_Diagram.pdf)
+![Timestep](images/Model_Sim_Diagram.png)
 
 
 ### Inference

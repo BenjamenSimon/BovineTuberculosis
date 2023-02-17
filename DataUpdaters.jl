@@ -99,6 +99,33 @@ function update_cattle_pers_general(DATA_res_and_track_prime, DATA_pers_and_pari
   return(DATA_res_and_track_prime, DATA_pers_and_parish_prime)
 end
 
+function update_badger_pers_general(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs::Vector{Farm_Parish_info}, scope::Scope)
+
+  t_start = scope.t_start
+  t_end = scope.t_end
+  positions = scope.h_positions
+
+  @inbounds for pos in positions
+    @inbounds for t in t_start:t_end
+
+      # Update Badger Exposure Probability
+
+      DATA_pers_and_parish_prime[1][pos, t, 5] = calc_exp_prop(;States_init = DATA_res_and_track_prime[1][pos, t, 22:24],
+                                                       p_env_prev = DATA_pers_and_parish_prime[2][f_to_p_structs[pos].parish_position, t, 19],
+                                                       β = epi_params[2],
+                                                       F = epi_params[4])
+
+
+     # Update Badger Infection Probability
+
+     DATA_pers_and_parish_prime[1][pos, t, 7] = calc_inf_prob(epi_params[3])
+
+    end
+  end
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime)
+end
+
 
 ####################################################
 ### Update the data after data augmentation draw ###
@@ -177,7 +204,7 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   ##############
 
   # :pcS_init
-  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 4] .+= sgnΔ * num_SE_moved
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):(upper_t), 4] .+= sgnΔ * num_SE_moved
   # :pcS_final
   DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 7] .+= sgnΔ * num_SE_moved
   # :pcE_init
@@ -255,7 +282,7 @@ function update_data_Move_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   ##############
 
   # :pcE_init
-  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 5] .+= sgnΔ * num_EI_moved
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):(upper_t), 5] .+= sgnΔ * num_EI_moved
   # :pcE_final
   DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 8] .+= sgnΔ * num_EI_moved
   # :pcI_init
@@ -392,7 +419,7 @@ function update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   DATA_res_and_track_prime[1][position, lower_t, [6,9,12,15,18,21]] .+= Δ
 
 
-  tracker[6:9] = [DATA_res_and_track_cur[2][position, t, 14], DATA_res_and_track_prime[2][position, t, 14],  DATA_res_and_track_cur[1][position, t, 5], DATA_pers_and_parish_cur[1][position, t, 5]]
+  tracker[6:9] = [DATA_res_and_track_cur[2][position, t, 14], DATA_res_and_track_prime[2][position, t, 14],  DATA_res_and_track_cur[1][position, t, 5], DATA_pers_and_parish_cur[1][position, t, 6]]
                 # :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
 
   ###############
@@ -799,6 +826,523 @@ function update_data_AddRem_penv(DATA_res_and_track_cur, DATA_pers_and_parish_cu
   ##############
 
   DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
+
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1, tracker)
+                                  # valid
+end
+
+
+###############
+### BADGERS ###
+###############
+
+
+### MOVE BADGER SE ###
+
+function update_data_Move_Badger_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, num_SE_moved, f_to_p_structs::Vector{Farm_Parish_info})
+
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+  ### Functional objects ###
+  sgnΔ = sign(Δ)
+  A = convert(Int, (1 - sgnΔ)/2)
+  B = 1-A
+
+  # println("    ", "num_SE_moved = ", num_SE_moved)
+
+  ### Scope ###
+
+  lower_t = (t+(A*Δ))
+  upper_t = (t+(B*Δ))
+  h_positions = [position]
+  h_llh_indices = Vector(1:13)
+
+  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
+
+  ###########################
+  ### Generate new states ###
+  ###########################
+
+  ##########
+  ### Update the events
+  ##########
+
+  DATA_res_and_track_prime[2][position, t, 15] -= num_SE_moved
+  DATA_res_and_track_prime[2][position, (t+Δ), 15] += num_SE_moved
+
+
+  ############
+  ### Update the states
+  ############
+
+  # :bS_init
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [22]] .+= sgnΔ * num_SE_moved
+  # :bS_postEI, :bS_final
+  DATA_res_and_track_prime[1][position, (lower_t):(upper_t-1), [25,28]] .+= sgnΔ * num_SE_moved
+
+  # :bE_init
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [23]] .-= sgnΔ * num_SE_moved
+  # :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, (lower_t):(upper_t-1), [26,29]] .-= sgnΔ * num_SE_moved
+
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  # println("    ", "Current data:")
+  # println("    ", DATA_res_and_track_cur[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
+  # println("    ", "Updated data:")
+  # println("    ", DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
+
+  posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [22,23,24,25,26,27,28,29]] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    # println("    ", "INVALID UPDATE!")
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0)
+                             # invalid
+  end
+
+
+  ##############
+  ### Update the parish states
+  ##############
+
+  # :pbS_init
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):(upper_t), 10] .+= sgnΔ * num_SE_moved
+  # :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 13] .+= sgnΔ * num_SE_moved
+  # :pbE_init
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):(upper_t), 11] .-= sgnΔ * num_SE_moved
+  # :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 14] .-= sgnΔ * num_SE_moved
+
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1)
+                                  # valid
+end
+
+
+### MOVE BADGER EI ###
+
+function update_data_Move_Badger_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, num_EI_moved, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+  ### Functional objects ###
+  sgnΔ = sign(Δ)
+  A = convert(Int, (1 - sgnΔ)/2)
+  B = 1-A
+
+  ### Scope ###
+
+  lower_t = (t+(A*Δ))
+  upper_t = (t+(B*Δ))
+  h_positions = [position]
+  h_llh_indices = Vector(1:13)
+
+  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
+
+  ###########################
+  ### Generate new states ###
+  ###########################
+
+  ##########
+  ### Update the events
+  ##########
+
+  DATA_res_and_track_prime[2][position, t, 16] -= num_EI_moved
+  DATA_res_and_track_prime[2][position, (t+Δ), 16] += num_EI_moved
+
+
+  ############
+  ### Update the states
+  ############
+
+  # :bE_init
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [23]] .+= sgnΔ * num_EI_moved
+  # :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, (lower_t):(upper_t-1), [26, 29]] .+= sgnΔ * num_EI_moved
+
+  # :bI_init
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [24]] .-= sgnΔ * num_EI_moved
+  # :bI_postEI, :bI_final
+  DATA_res_and_track_prime[1][position, (lower_t):(upper_t-1), [27,30]] .-= sgnΔ * num_EI_moved
+
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [22,23,24,25,26,27,28,29]] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0)
+                              # invalid
+  end
+
+
+  ##############
+  ### Update the parish states
+  ##############
+
+  # :pbE_init
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):(upper_t), 11] .+= sgnΔ * num_EI_moved
+  # :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 14] .+= sgnΔ * num_EI_moved
+  # :pbI_init
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):(upper_t), 12] .-= sgnΔ * num_EI_moved
+  # :pbI_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t):(upper_t-1), 15] .-= sgnΔ * num_EI_moved
+
+
+  ##############
+  ### Update the probabilities
+  ##############
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_badger_pers_general(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1)
+                                                                      # valid
+end
+
+
+### ADD/REM SE ###
+
+function update_data_AddRem_Badger_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, f_to_p_structs::Vector{Farm_Parish_info}, tracker)
+
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+  ### Scope ###
+
+  lower_t = t
+  upper_t = size(DATA_res_and_track_cur[1], 2) #T
+  h_positions = [position]
+  h_llh_indices = Vector(1:13)
+
+  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
+
+  ###########################
+  ### Generate new states ###
+  ###########################
+
+  ##########
+  ### Update the events
+  ##########
+
+  DATA_res_and_track_prime[2][position, t, 15] += Δ
+
+
+  ############
+  ### Update the states
+  ############
+
+  # :bS_postEI, :bS_final
+  DATA_res_and_track_prime[1][position, lower_t, [25,28]] .-= Δ
+  # :bS_init, :bS_postEI, :bS_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [22,25,28]] .-= Δ
+
+  # :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [26, 29]] .+= Δ
+  # :bE_init, :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, lower_t, [23, 26, 29]] .+= Δ
+
+  tracker[6:9] = [DATA_res_and_track_cur[2][position, t, 15], DATA_res_and_track_prime[2][position, t, 15],  DATA_res_and_track_cur[1][position, t, 22], DATA_pers_and_parish_cur[1][position, t, 5]]
+               #  :arSE_bSE_before, :arSE_bSE_after, :arSE_bS_init, :b_exp_prob
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [22,23,24,25,26,27,28,29]] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)
+                              # invalid
+  end
+
+
+  ##############
+  ### Update the parish states
+  ##############
+
+  # :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 13] -= Δ
+  # :pbS_init, :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [10,13]] .-= Δ
+
+  # :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 14] += Δ
+  # :pbE_init, :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [11,14]] .+= Δ
+
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1, tracker)
+                                  # valid
+end
+
+
+### ADD/REM EI ###
+
+function update_data_AddRem_Badger_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, epi_params, f_to_p_structs::Vector{Farm_Parish_info}, tracker)
+
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+  ### Scope ###
+
+  lower_t = t
+  upper_t = size(DATA_res_and_track_cur[1], 2) #T
+  h_positions = [position]
+  h_llh_indices = Vector(1:13)
+
+  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
+
+  ###########################
+  ### Generate new states ###
+  ###########################
+
+  ##########
+  ### Update the events
+  ##########
+
+  DATA_res_and_track_prime[2][position, t, 16] += Δ
+
+
+  ############
+  ### Update the states
+  ############
+
+  # :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, lower_t, [26, 29]] .-= Δ
+  # :bE_init, :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [23, 26, 29]] .-= Δ
+
+  # :bI_postEI, :bI_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [27, 30]] .+= Δ
+  # :bI_init, :bI_postEI, :bI_final
+  DATA_res_and_track_prime[1][position, lower_t, [24, 27, 30]] .+= Δ
+
+
+  tracker[6:9] = [DATA_res_and_track_cur[2][position, t, 16], DATA_res_and_track_prime[2][position, t, 16],  DATA_res_and_track_cur[1][position, t, 23], DATA_pers_and_parish_cur[1][position, t, 7]]
+                # :arEI_EI_before, :arEI_EI_after, :arEI_bE, :arEI_prob
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [22,23,24,25,26,27,28,29]] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)
+                              # invalid
+  end
+
+
+  ##############
+  ### Update the parish states
+  ##############
+
+  # :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 14] -= Δ
+  # :pbE_init, :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [11,14]] .-= Δ
+
+  # :pbI_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 15] += Δ
+  # :pbI_init, :pbI_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [12,15]] .+= Δ
+
+
+  ##############
+  ### Update the probabilities
+  ##############
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_badger_pers_general(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1, tracker)
+                                  # valid
+end
+
+
+### ADD/REM Deaths ###
+
+function update_data_AddRem_Badger_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δs, epi_params, f_to_p_structs::Vector{Farm_Parish_info}, tracker)
+
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+  ### Scope ###
+
+  lower_t = t
+  upper_t = size(DATA_res_and_track_cur[1], 2) #T
+  h_positions = [position]
+  h_llh_indices = Vector(1:13)
+
+  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
+
+  # Δs = [ΔS, ΔE, ΔI]
+  # Check sum(Δs) != 0 outside of func
+
+  ###########################
+  ### Generate new states ###
+  ###########################
+
+  ##########
+  ### Update the events
+  ##########
+
+  DATA_res_and_track_prime[2][position, t, [26,27,28]] += Δs
+
+
+  ############
+  ### Update the states
+  ############
+
+  # :bS_final
+  DATA_res_and_track_prime[1][position, lower_t, [28]] .-= Δs[1]
+  # :bS_init, :bS_postEI, :bS_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [22,25,28]] .-= Δs[1]
+
+
+  # :bE_final
+  DATA_res_and_track_prime[1][position, lower_t, [29]] .-= Δs[2]
+  # :bE_init, :bE_postEI, :bE_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [23,26,29]] .-= Δs[2]
+
+
+  # :bI_final
+  DATA_res_and_track_prime[1][position, lower_t, [30]] .-= Δs[3]
+  # :bI_init, :bI_postEI, :bI_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [24,27,30]] .-= Δs[3]
+
+
+  tracker[8:16] = [DATA_res_and_track_cur[2][position, t, 26:28] ; DATA_res_and_track_prime[2][position, t, 26:28] ;  DATA_res_and_track_cur[1][position, t, 25:27]]
+                # :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
+                # :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
+                # :arDeaths_bS_postEI, :arDeaths_bE_postEI, :arDeaths_bI_postEI
+
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [22,23,24,25,26,27,28,29]] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)
+                              # invalid
+  end
+
+
+  ##############
+  ### Update the parish states
+  ##############
+
+  # :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 13] -= Δs[1]
+  # :pbS_init, :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [10,13]] .-= Δs[1]
+
+  # :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 14] -= Δs[2]
+  # :pbE_init, :pbE_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [11,14]] .-= Δs[2]
+
+  # :pbI_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 15] -= Δs[3]
+  # :pbI_init, :pbI_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [12,15]] .-= Δs[3]
+
+
+  ##############
+  ### Update the probabilities
+  ##############
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_badger_pers_general(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
+
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1, tracker)
+                                  # valid
+end
+
+
+### ADD/REM Deaths ###
+
+function update_data_AddRem_Badger_Births(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δs, epi_params, f_to_p_structs::Vector{Farm_Parish_info}, tracker)
+
+  DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
+
+  ### Scope ###
+
+  lower_t = t
+  upper_t = size(DATA_res_and_track_cur[1], 2) #T
+  h_positions = [position]
+  h_llh_indices = Vector(1:13)
+
+  scope = Scope(lower_t, upper_t, h_positions, h_llh_indices)
+
+  # Δs = [ΔS]
+  # Check sum(Δs) != 0 outside of func
+
+  ###########################
+  ### Generate new states ###
+  ###########################
+
+  ##########
+  ### Update the events
+  ##########
+
+  DATA_res_and_track_prime[2][position, t, [25]] .+= Δs
+
+
+  ############
+  ### Update the states
+  ############
+
+  # :bS_final
+  DATA_res_and_track_prime[1][position, lower_t, [28]] .-= Δs[1]
+  # :bS_init, :bS_postEI, :bS_final
+  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [22,25,28]] .-= Δs[1]
+
+
+  tracker[6:10] = [DATA_res_and_track_cur[2][position, t, [25]] ; DATA_res_and_track_prime[2][position, t, [25]] ;  DATA_res_and_track_cur[1][position, t, 25:27]]
+                # :arBirths_births_before, :arBirths_births_aftere,
+                # :arBirths_bS_postEI, :arBirths_bE_postEI, :arBirths_bI_postEI
+
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [22,23,24,25,26,27,28,29]] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)
+                              # invalid
+  end
+
+
+  ##############
+  ### Update the parish states
+  ##############
+
+  # :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t, 13] -= Δs[1]
+  # :pbS_init, :pbS_final
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [10,13]] .-= Δs[1]
+
+
+  ##############
+  ### Update the probabilities
+  ##############
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_badger_pers_general(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
 
 
   return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, 1, tracker)

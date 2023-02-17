@@ -160,13 +160,14 @@ function propose_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi
 
   t, position = farms_with_S_and_exp_prob_at_t[rand(1:size(farms_with_S_and_exp_prob_at_t, 1)), :]
 
+  Δ = rand([-1, 1])
+
   AddRem_SE_track = [position, t, 0., 0., 1., -999., -999., -999., -999.]
                    # :arSE_position, :arSE_t, :arSE_is_accepted, :arSE_reason, :arSE_Δ, :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
 
   ### Calculate the update ###
 
-  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_SE_track = update_data_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, 1, f_to_p_structs, AddRem_SE_track)
-  # Δ = 1
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_SE_track = update_data_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, f_to_p_structs, AddRem_SE_track)
 
   if valid != 1
     log_q_ratio = -Inf
@@ -203,13 +204,14 @@ function propose_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi
 
   t, position = farms_with_E_at_t[rand(1:size(farms_with_E_at_t, 1)), :]
 
+  Δ = rand([-1, 1])
+
   AddRem_EI_track = [position, t, 0., 0., 1., -999., -999., -999., -999.]
                    # :arEI_position, :arEI_t, :arEI_is_accepted, :arEI_reason, :arEI_Δ, :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
 
   ### Calculate the update ###
 
-  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_EI_track = update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, 1, epi_params, f_to_p_structs, AddRem_EI_track)
-  # Δ = 1
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_EI_track = update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, epi_params, f_to_p_structs, AddRem_EI_track)
 
   if valid != 1
     log_q_ratio = -Inf
@@ -716,9 +718,6 @@ function calculate_delta_n(n_tune, acc_prop)
     delta_n = min(0.05, 1/sqrt(n_tune))
   end
 
-  println("   ", "acc_prop = ", acc_prop)
-  println("   ", "delta_n = ", delta_n)
-
   return(delta_n)
 end
 
@@ -851,4 +850,356 @@ function propose_detection_params(N_its, results, other_res,
     # lower_t, upper_t, h_pos_ids, h_llh_indices
 
   return(log_params_draw, 0.0, mixture, λ, DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope)
+end
+
+####################################
+### PROPOSE DETECTION PARAMETERS ###
+####################################
+
+function propose_badger_params(N_its, results, other_res,
+                                  it, log_params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur, f_to_p_structs,
+                                  n_tune, m, λ, d, covarM)
+
+  ##########################
+  ### Propose parameters ###
+  ##########################
+
+    log_params_draw, log_q_ratio, mixture, λ = propose_params(N_its, results, other_res,
+                                                              it, log_params_cur, [8,9], 11,
+                                                              n_tune, m, λ, d, covarM)
+
+    scope = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), [10,11,12,13])
+    # lower_t, upper_t, h_pos_ids, h_llh_indices
+
+  return(log_params_draw, 0.0, mixture, λ, DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope)
+end
+
+
+
+###############
+### BADGERS ###
+###############
+
+
+######################
+### Move Badger SE ###
+######################
+
+function propose_Move_Badger_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  ### Choose a farm and a timestep ###
+
+  farms_with_SE_events_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[2][:, :, 15] .> 0), [1,3]]
+
+  ### Generate the update parameters ###
+
+  t, position = farms_with_SE_events_at_t[rand(1:size(farms_with_SE_events_at_t, 1)), :]
+
+  # println("  ", "t = ", t)
+  # println("  ", "position = ", position)
+
+  Δ = 0
+  while Δ == 0
+    # Δ = rand(Poisson(3))
+    Δ = 1
+    sgn_Δ = rand([-1, 1])
+    Δ = sgn_Δ * Δ
+  end
+
+  # println("   ", "t + Δ = ", t + Δ)
+
+  if 360 < t + Δ || t + Δ <= 0
+    # println("   ", "Out of bounds! ")
+    log_q_ratio = -Inf
+    Move_SE_track = [position, t, 0., 4., Δ, 1.]
+                   # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_SE_track)
+  end
+
+  ### Calculate the update ###
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid = update_data_Move_Badger_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, 1, f_to_p_structs)
+  # num_SE_moved set to 1
+
+  if valid != 1
+    log_q_ratio = -Inf
+    Move_SE_track = [position, t, 0., 2., Δ, 1.]
+                   # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_SE_track)
+  end
+
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_SE_events_at_t = size(farms_with_SE_events_at_t, 1)
+
+  num_farms_with_SE_events_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[2][:, :, 15] .> 0), [1,3]], 1)
+
+  # println("   ", "num_farms_with_SE_events_at_t = ", num_farms_with_SE_events_at_t)
+  # println("   ", "num_farms_with_SE_events_at_t_prime = ", num_farms_with_SE_events_at_t_prime)
+
+  log_q_ratio = log(num_farms_with_SE_events_at_t / num_farms_with_SE_events_at_t_prime)
+
+
+  Move_SE_track = [position, t, 0., 0., Δ, 1.]
+                 # :mSE_position, :mSE_t, :mSE_is_accepted, :mSE_reason, :mSE_Δ_time, :mSE_num_moved
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, Move_SE_track)
+end
+
+
+######################
+### Move Badger EI ###
+######################
+
+function propose_Move_Badger_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  ### Choose a farm and a timestep ###
+
+  farms_with_EI_events_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[2][:, :, 16] .> 0), [1,3]]
+
+  ### Generate the update parameters ###
+
+  t, position = farms_with_EI_events_at_t[rand(1:size(farms_with_EI_events_at_t, 1)), :]
+
+  Δ = 0
+  while Δ == 0
+    Δ = rand(Poisson(3))
+    sgn_Δ = rand([-1, 1])
+    Δ = sgn_Δ * Δ
+  end
+
+  if 360 < t + Δ || t + Δ <= 0
+    log_q_ratio = -Inf
+    Move_EI_track = [position, t, 0., 4., Δ, 1.]
+                   # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_EI_track)
+  end
+
+  ### Calculate the update ###
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid = update_data_Move_Badger_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, 1, epi_params, f_to_p_structs)
+  # num_EI_moved set to 1
+
+  if valid != 1
+    log_q_ratio = -Inf
+    Move_EI_track = [position, t, 0., 2., Δ, 1.]
+                  # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], Move_EI_track)
+  end
+
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_EI_events_at_t = size(farms_with_EI_events_at_t, 1)
+
+  num_farms_with_EI_events_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[2][:, :, 16] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_EI_events_at_t / num_farms_with_EI_events_at_t_prime)
+
+
+  Move_EI_track = [position, t, 0., 0., Δ, 1.]
+                 # :mEI_position, :mEI_t, :mEI_is_accepted, :mEI_reason, :mEI_Δ_time, :mEI_num_moved
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, Move_EI_track)
+end
+
+
+########################
+### AddRem Badger SE ###
+########################
+
+function propose_AddRem_Badger_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  ### Choose a farm and a timestep ###
+
+  farms_with_S_and_exp_prob_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[1][:, :, 22] .> 0  .&& DATA_pers_and_parish_cur[1][:, :, 5] .> 0), [1,3]]
+  # Extract all farms that have bS_init_t > 0 AND prob_exp_t > 0
+
+  ### Generate the update parameters ###
+
+  t, position = farms_with_S_and_exp_prob_at_t[rand(1:size(farms_with_S_and_exp_prob_at_t, 1)), :]
+
+  Δ = rand([-1, 1])
+
+  AddRem_SE_track = [position, t, 0., 0., 1., -999., -999., -999., -999.]
+                   # :arSE_position, :arSE_t, :arSE_is_accepted, :arSE_reason, :arSE_Δ, :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
+
+  ### Calculate the update ###
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_SE_track = update_data_AddRem_Badger_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, f_to_p_structs, AddRem_SE_track)
+
+  if valid != 1
+    log_q_ratio = -Inf
+    AddRem_SE_track[4] = 2
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_SE_track)
+  end
+
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_S_and_exp_prob_at_t = size(farms_with_S_and_exp_prob_at_t, 1)
+
+  num_farms_with_S_and_exp_prob_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[1][:, :, 22] .> 0  .&& DATA_pers_and_parish_prime[1][:, :, 5] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_S_and_exp_prob_at_t / num_farms_with_S_and_exp_prob_at_t_prime)
+
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_SE_track)
+end
+
+
+########################
+### AddRem Badger EI ###
+########################
+
+function propose_AddRem_Badger_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  ### Choose a farm and a timestep ###
+
+  farms_with_E_at_t = DATA_res_and_track_cur[2][(DATA_res_and_track_cur[1][:, :, 23] .> 0), [1,3]]
+  # Extract all farms that have cE_postM_t > 0
+
+  ### Generate the update parameters ###
+
+  t, position = farms_with_E_at_t[rand(1:size(farms_with_E_at_t, 1)), :]
+
+  Δ = rand([-1, 1])
+
+  AddRem_EI_track = [position, t, 0., 0., 1., -999., -999., -999., -999.]
+                   # :arEI_position, :arEI_t, :arEI_is_accepted, :arEI_reason, :arEI_Δ, :arEI_EI_before, :arEI_EI_after, :arEI_cE, :arEI_prob
+
+  ### Calculate the update ###
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_EI_track = update_data_AddRem_Badger_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δ, epi_params, f_to_p_structs, AddRem_EI_track)
+
+  if valid != 1
+    log_q_ratio = -Inf
+    AddRem_EI_track[4] = 2
+
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_EI_track)
+  end
+
+
+  ### Log q ratio calculation ###
+
+  num_farms_with_E_at_t = size(farms_with_E_at_t, 1)
+
+  num_farms_with_E_at_t_prime = size(DATA_res_and_track_prime[2][(DATA_res_and_track_prime[1][:, :, 23] .> 0), [1,3]], 1)
+
+  log_q_ratio = log(num_farms_with_E_at_t / num_farms_with_E_at_t_prime)
+
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_EI_track)
+end
+
+
+############################
+### AddRem Badger Deaths ###
+############################
+
+function propose_AddRem_Badger_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  ### Choose a farm and a timestep ###
+
+  farms_with_permutable_deaths_at_t = DATA_res_and_track_cur[2][( ((DATA_res_and_track_cur[1][:, :, 25] .> 0 .&& DATA_res_and_track_cur[1][:, :, 26] .> 0) .||
+                                                            (DATA_res_and_track_cur[1][:, :, 25] .> 0 .&& DATA_res_and_track_cur[1][:, :, 27] .> 0) .||
+                                                            (DATA_res_and_track_cur[1][:, :, 26] .> 0 .&& DATA_res_and_track_cur[1][:, :, 27] .> 0)) .&&
+                                                            (DATA_res_and_track_cur[2][:, :, 26] .> 0 .|| DATA_res_and_track_cur[2][:, :, 27] .> 0 .|| DATA_res_and_track_cur[2][:, :, 28] .> 0) ),
+                                                          [1,3]]
+  # Extract all farms that have atleast 2 bStates_postEI and at least 1 badger death.
+
+
+  ### Generate the update parameters ###
+
+  t, position = farms_with_permutable_deaths_at_t[rand(1:size(farms_with_permutable_deaths_at_t, 1)), :]
+
+  bStates_postEI_t = Array(DATA_res_and_track_cur[1][position, t, 25:27])
+  deaths_t = Array(DATA_res_and_track_cur[2][position, t, 26:28])
+
+  deaths_t_new = rng_mvhyper(bStates_postEI_t, sum(deaths_t))
+
+  Δs = deaths_t_new - deaths_t
+
+  AddRem_Deaths_track = [position, t, 0., 0., Δs[1], Δs[2], Δs[3], -999., -999., -999., -999., -999., -999., -999., -999., -999.]
+                      # :arDeaths_position, :arDeaths_t, :arDeaths_is_accepted, :arDeaths_reason,
+                                          # :arDeaths_ΔS, :arDeaths_ΔE, :arDeaths_ΔI,
+                                          # :arDeaths_Sdths_before, :arDeaths_Edths_before, :arDeaths_Idths_before,
+                                          # :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
+                                          # :arDeaths_bS, :arDeaths_bE, :arDeaths_bI
+
+  if sum(Δs) == 0
+    log_q_ratio = -Inf
+    AddRem_Deaths_track[4] = 3
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Deaths_track)
+  end
+
+
+  ### Calculate the update ###
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_Deaths_track = update_data_AddRem_Badger_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δs, epi_params, f_to_p_structs, AddRem_Deaths_track)
+
+  if valid != 1
+    log_q_ratio = -Inf
+    AddRem_Deaths_track[4] = 2
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Deaths_track)
+  end
+
+  ### Calculate the log q ratio (proposal density ratio) ###
+  log_q_ratio = log_pdf_mvhyper(bStates_postEI_t, deaths_t) - log_pdf_mvhyper(bStates_postEI_t, deaths_t_new) # q_cur_given_prime - q_prime_given_cur
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_Deaths_track)
+end
+
+
+############################
+### AddRem Badger Births ###
+############################
+
+function propose_AddRem_Badger_Births(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
+
+  ### Choose a farm and a timestep ###
+
+  farms_with_births_at_t = DATA_res_and_track_cur[2][( (DATA_res_and_track_cur[1][:, :, 25] .> 0) .|| (DATA_res_and_track_cur[1][:, :, 26] .> 0) .|| (DATA_res_and_track_cur[1][:, :, 27] .> 0) ),
+                                                          [1,3]]
+  # Extract all farms that have total bStates_postEI > 0
+
+
+  ### Generate the update parameters ###
+
+  t, position = farms_with_births_at_t[rand(1:size(farms_with_births_at_t, 1)), :]
+
+  bStates_postEI_t = Array(DATA_res_and_track_cur[1][position, t, 25:27])
+  births_t = Array(DATA_res_and_track_cur[2][position, t, [25]])[1]
+
+  births_t_new = rand(Poisson((epi_params[8] * sum(bStates_postEI_t))))
+
+  Δs = births_t_new - births_t
+
+  AddRem_Births_track = [position, t, 0., 0., Δs[1], -999., -999., -999., -999., -999.]
+                        # :arBirths_badger_position, :arBirths_badger_t, :arBirths_badger_is_accepted, :arBirths_badger_reason,
+                                                   # :arBirths_badger_ΔS, :arBirths_badger_births_before, :arBirths_badger_births_after,
+                                                   # :arBirths_badger_bS, :arBirths_badger_bE, :arBirths_badger_bI
+
+  if sum(Δs) == 0
+    log_q_ratio = -Inf
+    AddRem_Births_track[4] = 3
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Births_track)
+  end
+
+
+  ### Calculate the update ###
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope, valid, AddRem_Births_track = update_data_AddRem_Badger_Births(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, Δs, epi_params, f_to_p_structs, AddRem_Births_track)
+
+  if valid != 1
+    log_q_ratio = -Inf
+    AddRem_Births_track[4] = 2
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Births_track)
+  end
+
+  ### Calculate the log q ratio (proposal density ratio) ###
+  log_q_ratio = logpdf(Poisson((epi_params[8] * sum(bStates_postEI_t))), births_t)  -  logpdf(Poisson((epi_params[8] * sum(bStates_postEI_t))), births_t_new)
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_Births_track)
 end

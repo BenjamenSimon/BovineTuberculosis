@@ -28,6 +28,16 @@ function Detection_prior(epi_params_dists, epi_params::Vector{Float64})
   return(log_prior::Float64)
 end
 
+function Badger_birth_death_prior(epi_params_dists, epi_params::Vector{Float64})
+
+  θbb_prior::Float64 = logpdf(epi_params_dists[8], epi_params[8])
+  θbd_prior::Float64 = logpdf(epi_params_dists[9], epi_params[9])
+
+  log_prior::Float64 = θbb_prior + θbd_prior
+
+  return(log_prior::Float64)
+end
+
 
 #########################################
 ### Parameter Posterior Distributions ###
@@ -55,6 +65,15 @@ function Detection_params_posterior(llh_array_prime, p_env_llh_array_prime, scop
   return(post_prime::Float64)
 end
 
+function Badger_birth_death_params_posterior(llh_array_prime, p_env_llh_array_prime, scope::Scope, log_prior_dists, epi_params_prime)
+
+  log_prior_prime::Float64 = Badger_birth_death_prior(log_prior_dists, epi_params_prime)
+
+  post_prime::Float64 = calc_llh_h_and_p(scope, llh_array_prime, p_env_llh_array_prime) + log_prior_prime
+
+  return(post_prime::Float64)
+end
+
 
 #################################################
 ### Data Augmentation Posterior Distributions ###
@@ -71,7 +90,7 @@ end
 
 function generic_posterior_dataaug(llh_array_prime, p_env_llh_array_prime, scope::Scope, epi_params_prime)
 
-  # Used for MoveEI, AddRemEI, AddRemDet, AddRemDeath, AddRemMoves, AddRemPenv
+  # Used for MoveEI, AddRemEI, AddRemDet, AddRemDeath, AddRemMoves, AddRemPenv, AddRemBadgerBirths, AddRemBadgerDeaths
 
   post_prime = calc_llh_h_and_p(scope, llh_array_prime, p_env_llh_array_prime)
 

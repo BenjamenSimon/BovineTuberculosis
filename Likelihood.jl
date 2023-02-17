@@ -584,7 +584,7 @@ end
   return(llh_array_new, p_env_llh_array_cur)
 end
 
-@views function update_llh_array_BBD(scope::Scope, llh_array_cur, DATA_res_and_track, epi_params)
+@views function update_llh_array_BBD(scope::Scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track, DATA_pers_and_parish, epi_params, f_to_p_structs::Vector{Farm_Parish_info})
 
   t_start = scope.t_start
   t_end = scope.t_end
@@ -603,7 +603,7 @@ end
     end
   end
 
-  return(llh_array_new)
+  return(llh_array_new, p_env_llh_array_cur)
 end
 
 ###############################

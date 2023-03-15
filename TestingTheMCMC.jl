@@ -10,16 +10,16 @@ include("MCMCfuncs.jl")
 ### LOAD DATA ###
 #################
 
-DATA_res_and_track = load("Data/Set 1/DATA_res_and_track.jld2")["array"]
-DATA_pers_and_parish = load("Data/Set 1/DATA_pers_and_parish.jld2")["array"]
+DATA_res_and_track = load("Data/Set 2/DATA_res_and_track.jld2")["array"]
+DATA_pers_and_parish = load("Data/Set 2/DATA_pers_and_parish.jld2")["array"]
 
-f_to_p_structs = load("Data/Set 1/f_to_p_structs.jld2")["struct"]
+f_to_p_structs = load("Data/Set 2/f_to_p_structs.jld2")["struct"]
 
-record_of_movements = Array(load("Data/Set 1/record_of_movements_oi.jld2")["array"])
+record_of_movements = Array(load("Data/Set 2/record_of_movements_oi.jld2")["array"])
 
-dict_of_movements = load("Data/Set 1/dict_of_movements.jld2")["dict"]
+dict_of_movements = load("Data/Set 2/dict_of_movements.jld2")["dict"]
 
-ids_to_pos_dict = load("Data/Set 1/ids_to_pos_dict.jld2")["dict"]
+ids_to_pos_dict = load("Data/Set 2/ids_to_pos_dict.jld2")["dict"]
 
 ###########
 ### RUN ###
@@ -48,13 +48,22 @@ epi_params_true = [β_c_tr, β_b_tr, γ_tr, F_tr, ϵ_tr, ρ_tr, ρ_E_tr, θ_bb_t
 # d_ρ = Uniform(0, 1)
 # d_ρ_E = Uniform(0, 1)
 
-d_β_c = Gamma(11, 0.0002)
-d_β_b = Gamma(21, 0.0002)
-d_γ = Gamma(21, 0.00075)
-d_F = Gamma(21, 0.0002)
-d_ϵ = Gamma(11, 0.005)
-d_ρ = Beta(2.5, 1.5)
-d_ρ_E = Beta(2, 5)
+# d_β_c = Gamma(11, 0.0002)
+# d_β_b = Gamma(21, 0.0002)
+# d_γ = Gamma(21, 0.00075)
+# d_F = Gamma(21, 0.0002)
+# d_ϵ = Gamma(11, 0.005)
+# d_ρ = Beta(2.5, 1.5)
+# d_ρ_E = Beta(2, 5)
+
+
+d_β_c = Gamma(2, 0.001)
+d_β_b = Gamma(2, 0.002)
+d_γ = Gamma(3, 0.005)
+d_F = Gamma(2, 0.002)
+d_ϵ = Gamma(1, 0.05)
+d_ρ = Beta(1.5, 0.5)
+d_ρ_E = Beta(0.4, 1.6)
 
 
 epi_params_dists = [d_β_c, d_β_b, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
@@ -302,7 +311,79 @@ CSV.write("Inference/Results_15_[Inf][arMoves]/tuning_res_15_[Inf][arMoves].csv"
 CSV.write("Inference/Results_15_[Inf][arMoves]/update_tracker_15_[Inf][arMoves].csv", ut15, header = true)
 
 
+########################################
+#### 16. Everything - Strong Priors ####
+########################################
 
+r16, or16, ar16, tr16, ut16 = Blk_Adaptive_RWM_MCMC(;N_its = 500000, infer_block = [true, true], data_aug_infer = [true, true, true, true, true, true, true, true],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
+                          moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.03, 45, 0.01, 5],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Results_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/res_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", r16, header = true)
+CSV.write("Inference/Results_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/other_res_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", or16, header = true)
+CSV.write("Inference/Results_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/aug_res_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ar16, header = true)
+CSV.write("Inference/Results_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/tuning_res_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", tr16, header = true)
+CSV.write("Inference/Results_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/update_tracker_16_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ut16, header = true)
+
+
+########################################
+#### 17. Everything - Weak Priors ####
+########################################
+
+r17, or17, ar17, tr17, ut17 = Blk_Adaptive_RWM_MCMC(;N_its = 500000, infer_block = [true, true], data_aug_infer = [true, true, true, true, true, true, true, true],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
+                          moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.03, 50, 0.04, 4],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Results_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/res_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", r17, header = true)
+CSV.write("Inference/Results_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/other_res_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", or17, header = true)
+CSV.write("Inference/Results_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/aug_res_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ar17, header = true)
+CSV.write("Inference/Results_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/tuning_res_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", tr17, header = true)
+CSV.write("Inference/Results_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/update_tracker_17_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ut17, header = true)
+
+
+
+######################################
+#### 18. Everything - Weak Priors ####
+######################################
+
+r18, or18, ar18, tr18, ut18 = Blk_Adaptive_RWM_MCMC(;N_its = 500000, infer_block = [true, true], data_aug_infer = [true, true, true, true, true, true, true, true],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
+                          moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.03, 50, 0.04, 4],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Results_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/res_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", r18, header = true)
+CSV.write("Inference/Results_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/other_res_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", or18, header = true)
+CSV.write("Inference/Results_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/aug_res_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ar18, header = true)
+CSV.write("Inference/Results_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/tuning_res_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", tr18, header = true)
+CSV.write("Inference/Results_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/update_tracker_18_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ut18, header = true)
+
+
+######################################
+#### 19. Everything - Weak Priors ####
+######################################
+
+Random.seed!(7)
+
+r19, or19, ar19, tr19, ut19 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, true], data_aug_infer = [true, true, true, true, true, true, true, true],
+                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
+                          moves_record = record_of_movements,
+                          params_init = epi_params_true, tuning = [0.03, 50, 0.04, 4],
+                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                          ids_to_pos_dict = ids_to_pos_dict)
+
+CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", r19, header = true)
+CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/other_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", or19, header = true)
+CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/aug_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ar19, header = true)
+CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/tuning_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", tr19, header = true)
+CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/update_tracker_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", ut19, header = true)
 
 
 

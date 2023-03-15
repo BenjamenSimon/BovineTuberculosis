@@ -236,7 +236,7 @@ for parish in 1:size(area_of_parish_all, 1)
     parish_3D[parish, :, [1 ; 4:15 ; 21:22]] = Array(@subset(results_df, :row_id .== first_h_of_p_ALL[parish]))[:, [1 ; 32:45]]
     parish_3D[parish, :, 16:17] = Array(@subset(track_df, :row_id .== first_h_of_p_ALL[parish]))[:, 28:29]
     parish_3D[parish, :, 18] .= area_of_parish_all[parish]
-    parish_3D[parish, :, 19:20] = Array(@subset(pers_df, :row_id .== first_h_of_p_ALL[parish]))[:, [4,5]]
+    parish_3D[parish, :, 19:20] = Array(@subset(pers_df, :row_id .== first_h_of_p_ALL[parish]))[:, [3,4]]
     parish_3D[parish, :, 23] .= first_h_of_p_ALL[parish]
 end
 
@@ -255,11 +255,17 @@ end
 ### Identify top X parishes
 #############
 
-results_df_first_h_of_p = @subset(results_df, in.(:row_id, [first_h_of_p_ALL]))[:, [1:2 ; 32:37]]
+# results_df_first_h_of_p = @subset(results_df, in.(:row_id, [first_h_of_p_ALL]))[:, [1:2 ; 32:37]]
 
-sum_of_infecteds_parish = combine(groupby(results_df_first_h_of_p, [:row_id]), :pcI_init => sum)
+results_df_first_h_of_p = @subset(results_df, in.(:row_id, [first_h_of_p_ALL]))[:, [1:2 ; 32:37; 44:45]]
 
-uids_first_h_of_p_top = Int64.(sum_of_infecteds_parish[sortperm(Array{Int64}(sum_of_infecteds_parish[:, 2]), rev = true)[1:7], :][:, 1])
+# sum_of_infecteds_parish = combine(groupby(results_df_first_h_of_p, [:row_id]), :pcI_init => sum).
+
+sum_of_infecteds_parish = combine(groupby(results_df_first_h_of_p, [:row_id, :parish]), :pcI_init => sum)
+
+# uids_first_h_of_p_top = Int64.(sum_of_infecteds_parish[sortperm(Array{Int64}(sum_of_infecteds_parish[:, 2]), rev = true)[1:7], :][:, 1])
+
+uids_first_h_of_p_top = Int64.(sum_of_infecteds_parish[in([139,354,336,367,349,360,345,347,357,335,344,348,363,404,358,333,359,351,332,342,343,356,327,329]).(sum_of_infecteds_parish.parish), :][:, 1])
 
 
 ##################
@@ -485,22 +491,22 @@ DATA_pers_and_parish = [array3, array4]
 ### Save Results ###
 ####################
 
-save("Data/Set 1/res_3D_oi.jld2", "array", res_3D_oi)
+save("Data/Set 2/res_3D_oi.jld2", "array", res_3D_oi)
 
-save("Data/Set 1/combi_array.jld2", "array", combi_array)
+save("Data/Set 2/combi_array.jld2", "array", combi_array)
 
-save("Data/Set 1/combi_array_unnamed.jld2", "array", combi_array_unnamed)
+save("Data/Set 2/combi_array_unnamed.jld2", "array", combi_array_unnamed)
 
-save("Data/Set 1/DATA_res_and_track.jld2", "array", DATA_res_and_track)
-save("Data/Set 1/DATA_pers_and_parish.jld2", "array", DATA_pers_and_parish)
+save("Data/Set 2/DATA_res_and_track.jld2", "array", DATA_res_and_track)
+save("Data/Set 2/DATA_pers_and_parish.jld2", "array", DATA_pers_and_parish)
 
-save("Data/Set 1/record_of_movements_oi.jld2", "array", record_of_movements_oi)
+save("Data/Set 2/record_of_movements_oi.jld2", "array", record_of_movements_oi)
 
 
-save("Data/Set 1/f_to_p_dict.jld2", "dict", f_to_p_dict)
+save("Data/Set 2/f_to_p_dict.jld2", "dict", f_to_p_dict)
 
-save("Data/Set 1/f_to_p_structs.jld2", "struct", f_to_p_structs)
+save("Data/Set 2/f_to_p_structs.jld2", "struct", f_to_p_structs)
 
-save("Data/Set 1/ids_to_pos_dict.jld2", "dict", ids_to_pos_dict)
+save("Data/Set 2/ids_to_pos_dict.jld2", "dict", ids_to_pos_dict)
 
-save("Data/Set 1/dict_of_movements.jld2", "dict", dict_of_movements)
+save("Data/Set 2/dict_of_movements.jld2", "dict", dict_of_movements)

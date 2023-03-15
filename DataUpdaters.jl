@@ -96,6 +96,8 @@ function update_cattle_pers_general(DATA_res_and_track_prime, DATA_pers_and_pari
     end
   end
 
+
+
   return(DATA_res_and_track_prime, DATA_pers_and_parish_prime)
 end
 
@@ -143,8 +145,6 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   A = convert(Int, (1 - sgnΔ)/2)
   B = 1-A
 
-  # println("    ", "num_SE_moved = ", num_SE_moved)
-
   ### Scope ###
 
   lower_t = (t+(A*Δ))
@@ -184,11 +184,6 @@ function update_data_Move_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
   ###############
   ### Quick check for validity
   ###############
-
-  # println("    ", "Current data:")
-  # println("    ", DATA_res_and_track_cur[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
-  # println("    ", "Updated data:")
-  # println("    ", DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]])
 
   posi_check = (DATA_res_and_track_prime[1][position, (lower_t):(upper_t), [4,5,7,8,10,11,13,14,16,17,19,20]] .>= 0)
 
@@ -276,7 +271,6 @@ function update_data_Move_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur, p
                               # invalid
   end
 
-
   ##############
   ### Update the parish states
   ##############
@@ -327,7 +321,6 @@ function update_data_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   ##########
 
   DATA_res_and_track_prime[2][position, t, 13] += Δ
-
 
   ############
   ### Update the states
@@ -432,7 +425,6 @@ function update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
     return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)
                               # invalid
   end
-
 
   ##############
   ### Update the parish states

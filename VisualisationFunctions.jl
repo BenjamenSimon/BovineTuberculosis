@@ -23,6 +23,14 @@ function plot_det_posterior_compare(other_res, from, to, plottitle, legendpos, a
   return(p1)
 end
 
+function plot_bad_posterior_compare(other_res, from, to, plottitle, legendpos, alphaval)
+
+  p1 = plot(other_res[from:to, :post_bad], title = plottitle, label = "post", alpha = alphaval, lw = 3)
+        plot!(other_res[from:to, :post_prime_bad], label = "post_prime", alpha = alphaval, lw = 3, legend = legendpos, size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
+
+  return(p1)
+end
+
 #### CUMULATIVE ACCEPTANCE RATES ####
 
 function calc_acc_inf(other_res)
@@ -38,6 +46,14 @@ function calc_acc_det(other_res)
 
   return(acc_p)
 end
+
+function calc_acc_bad(other_res)
+
+  acc_p = cumsum(other_res[:,:is_accepted_bad])./other_res[:,:sample]
+
+  return(acc_p)
+end
+
 
 function plot_acc(acc, plotttitle)
   plot(acc, title = plotttitle, lw = 3, label = "Params", size = (3000, 1800), bottom_margin = 20mm, left_margin = 25mm, right_margin = 55mm, dpi = 300)
@@ -136,6 +152,14 @@ function plot_acc_rates_against_λ_and_m_det_scaled(other_res, tuning_res, from,
     plot!( ( tuning_res[from:to,:m_det]./mean(tuning_res[from:to,:m_det]) ), label = "m_det_scaled_by_mean", lw = 3)
 end
 
+function plot_acc_rates_against_λ_and_m_bad_scaled(other_res, tuning_res, from, to, N_its, plottitle, legendpos, printtrue)
+
+  plot_acc_batch_det(other_res, from, to, N_its, plottitle, legendpos, printtrue)
+    plot!(tuning_res[from:to, :λ_bad], label = "λ_bad", lw = 3)
+    plot!([0.33], seriestype = :hline, label = :none, lw = 3)
+    plot!( ( tuning_res[from:to,:m_bad]./mean(tuning_res[from:to,:m_det]) ), label = "m_bad_scaled_by_mean", lw = 3)
+end
+
 function plot_acc_rates_against_λ_and_m_inf(other_res, tuning_res, from, to, N_its, plottitle, legendpos, printtrue)
 
   plot_acc_batch_inf(other_res, from, to, N_its, plottitle, legendpos, printtrue)
@@ -150,6 +174,14 @@ function plot_acc_rates_against_λ_and_m_det(other_res, tuning_res, from, to, N_
     plot!(tuning_res[from:to, :λ_det], label = "λ_det", lw = 3)
     plot!([0.33], seriestype = :hline, label = :none, lw = 3)
     plot!(tuning_res[from:to,:m_det], label = "m_det", lw = 3)
+end
+
+function plot_acc_rates_against_λ_and_m_bad(other_res, tuning_res, from, to, N_its, plottitle, legendpos, printtrue)
+
+  plot_acc_batch_det(other_res, from, to, N_its, plottitle, legendpos, printtrue)
+    plot!(tuning_res[from:to, :λ_bad], label = "λ_bad", lw = 3)
+    plot!([0.33], seriestype = :hline, label = :none, lw = 3)
+    plot!(tuning_res[from:to,:m_bad], label = "m_bad", lw = 3)
 end
 
 #### REJECTION REASONS ####

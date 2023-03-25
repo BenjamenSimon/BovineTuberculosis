@@ -18,6 +18,8 @@ df_chesh_births_raw = load("Data/RealDataInit/df_births_aggregated_farm_week.rds
 
 df_chesh_deaths_raw = load("Data/RealDataInit/df_deaths_aggregated_farm_week.rds")
 
+adjustments = CSV.read("Data/adjustments_init.csv", DataFrame)
+
 
 #######################################
 #### Small initial conditions edit ####
@@ -29,7 +31,6 @@ rows_to_update_2 = findall(df_chesh_initial_states_raw.cph .== (61510129))
 df_chesh_initial_states_raw[rows_to_update_1, [:num_not_infected, :num_infected]] .= [570.0 4.0]
 
 df_chesh_initial_states_raw[rows_to_update_2, [:num_not_infected, :num_infected]] .= [133.0 2.0]
-
 
 #############################
 #### Preprocess the Data ####
@@ -69,7 +70,7 @@ df_chesh_deaths = leftjoin(df_chesh_deaths_raw_subset[:, [1,2,3,4,5,7]], cph_to_
 
 df_chesh_movements_raw_subset = @subset(df_chesh_movements_raw, :week_no .< 361)
 
-df_chesh_movements_raw_2 = leftjoin(df_chesh_movements_raw[:, [1,2,3,4,5,7,8,9,10,12]], cph_to_formatted[:, [1, 8]], on = [:first_off_cph => :cph],
+df_chesh_movements_raw_2 = leftjoin(df_chesh_movements_raw_subset[:, [1,2,3,4,5,7,8,9,10,12]], cph_to_formatted[:, [1, 8]], on = [:first_off_cph => :cph],
                                                             makeunique=false, indicator=nothing, validate=(false, false))
 
 rename!(df_chesh_movements_raw_2, :row_id => :first_off_row_id)
@@ -188,7 +189,7 @@ setnames!(real_data_pers,
 )
 
 for farm in 1:2172
-    real_data_track[farm, :, [1,2,3]] .= hcat(collect(1:360), fill(Float64(farm), 360), fill(Float64(farm), 360))
+    real_data_pers[farm, :, [1,2,3]] .= hcat(collect(1:360), fill(Float64(farm), 360), fill(Float64(farm), 360))
 end
 
 
@@ -258,9 +259,64 @@ end
 
 for row_id in 1:size(real_data_results, 1)
   if row_id in unique(df_chesh_initial_states[:, :row_id])
-    real_data_results[row_id, :, [4,6]] .= Array(@subset(df_chesh_initial_states, :row_id .== row_id))[:, [5,6]]
+    real_data_results[row_id, 1, [4,6]] .= Array(@subset(df_chesh_initial_states, :row_id .== row_id))[[5,6]]
   end
   real_data_results[row_id, :, [22,23]] .= Array(@subset(cph_to_formatted, :row_id .== row_id))[:, [2,3]]
+end
+
+# adjustments = zeros(2172, 2)
+# adjustments[:, 1] = 1:2172
+#
+# for row_id in 1:2172
+#
+#   initial_conditions = sum(real_data_results[row_id, 1, 4:6])
+#
+#   total_movements_off = sum(df_chesh_movements[findall(df_chesh_movements[:,11] .== row_id), 10])
+#
+#   total_movements_on = sum(df_chesh_movements[findall(df_chesh_movements[:,12] .== row_id), 10])
+#
+#   total_births = sum(df_chesh_births[findall(df_chesh_births[:,7] .== row_id), 6])
+#
+#   total_deaths = sum(df_chesh_deaths[findall(df_chesh_deaths[:,7] .== row_id), 6])
+#
+#   total_slaughtered = sum(df_chesh_tests[findall(df_chesh_tests[:,8] .== row_id), 4])
+#
+#   added_cattle = initial_conditions + total_movements_on + total_births
+#   removed_cattle = total_movements_off + total_deaths + total_slaughtered
+#
+#   if (added_cattle - removed_cattle) < 0
+#     println(row_id, "    ", added_cattle - removed_cattle)
+#     adjustments[row_id, 2] = -(added_cattle - removed_cattle)
+#   end
+#
+# end
+#
+# adjustments_init = DataFrame(adjustments, :auto)
+#
+# CSV.write("Data/adjustments_init.csv", adjustments_init, header = true)
+
+for row_id in 1:2172
+  real_data_results[row_id, 1, 4] += adjustments[row_id, 2]
+end
+
+##########
+### Increase the number of initial exposed
+##########
+
+for row_id in 1:2172
+  cS = real_data_results[row_id, 1, 4]
+
+  for level in 1:25
+    if cS == level
+      real_data_results[row_id, 1, 4] -= level
+      real_data_results[row_id, 1, 5] += level
+    end
+  end
+
+  if cS > 25
+    real_data_results[row_id, 1, 4] -= 25
+    real_data_results[row_id, 1, 5] += 25
+  end
 end
 
 
@@ -270,37 +326,43 @@ end
 
 ###~~~ Testing ~~~###
 
-for row_id in 1:size(real_data_results, 1)
-  times_when_tests_happened = Array(@subset(df_chesh_tests, :row_id .== row_id))[:,2]
-  for t in 1:360
-    if t in times_when_tests_happened
-      real_data_track[row_id, t, [15,16]] = Array(@subset(df_chesh_tests, :row_id .== row_id, :week_no .== t))[:, [3,4]]
-    end
-  end
-end
+# for row_id in 1:size(real_data_results, 1)
+#   times_when_tests_happened = Array(@subset(df_chesh_tests, :row_id .== row_id))[:,2]
+#   for t in 1:360
+#     if t in times_when_tests_happened
+#       real_data_track[row_id, t, [15,16]] = Array(@subset(df_chesh_tests, :row_id .== row_id, :week_no .== t))[:, [3,4]]
+#     end
+#   end
+# end
 
 ###~~~ Births ~~~###
 
-for row_id in 1:size(real_data_results, 1)
-  times_when_births_happened = Array(@subset(df_chesh_births, :row_id .== row_id))[:,1]
-  for t in 1:360
-    if t in times_when_births_happened
-      real_data_track[row_id, t, [19]] .= Array(@subset(df_chesh_births, :row_id .== row_id, :week_no .== t))[:, [6]]
-    end
-  end
-end
+# for row_id in 1:size(real_data_results, 1)
+#   times_when_births_happened = Array(@subset(df_chesh_births, :row_id .== row_id))[:,1]
+#   for t in 1:360
+#     if t in times_when_births_happened
+#       real_data_track[row_id, t, [19]] .= Array(@subset(df_chesh_births, :row_id .== row_id, :week_no .== t))[:, [6]]
+#     end
+#   end
+# end
 
 ###~~~ Deaths ~~~###
 
-for row_id in 1:size(real_data_results, 1)
-  times_when_deaths_happened = Array(@subset(df_chesh_deaths, :row_id .== row_id))[:,1]
-  for t in 1:360
-    if t in times_when_deaths_happened
-      real_data_track[row_id, t, [24]] .= Array(@subset(df_chesh_deaths, :row_id .== row_id, :week_no .== t))[:, [6]]
-    end
-  end
-end
+# for row_id in 1:size(real_data_results, 1)
+#   times_when_deaths_happened = Array(@subset(df_chesh_deaths, :row_id .== row_id))[:,1]
+#   for t in 1:360
+#     if t in times_when_deaths_happened
+#       real_data_track[row_id, t, [24]] .= Array(@subset(df_chesh_deaths, :row_id .== row_id, :week_no .== t))[:, [6]]
+#     end
+#   end
+# end
 
+
+###~~~ Save and Reload ~~~###
+
+# save("Data/RealDataInit/processed_track.jld2", "array", real_data_track)
+
+real_data_track = load("Data/RealDataInit/processed_track.jld2")["array"]
 
 ############################
 #### Functional objects ####
@@ -372,16 +434,21 @@ end
 #   end
 #   println("off_row_id = ", off_row_id)
 # end
+#
+# save("Data/dict_of_movements_real.jld2", "dict", dict_of_movements)
 
-# save("dict_of_movements_real.jld2", "dict", dict_of_movements)
-
-dict_of_movements = load("dict_of_movements_real.jld2")["dict"]
+dict_of_movements = load("Data/dict_of_movements_real.jld2")["dict"]
 
 function create_temp_movement_states(t, real_data_results)
 
   temp_movements_states = deepcopy(real_data_results[:, t, 4:6])
 
-  return(temp_movements_states)
+  for row_id in 1:2172
+    # [7,8,9] captured in process movements off
+    real_data_results[row_id, t, [10,11,12]] .+= real_data_results[row_id, t, [4,5,6]]
+  end
+
+  return(temp_movements_states, real_data_results)
 end
 
 function process_movements_from_outside(t, real_data_results, real_data_track, dict_of_movements, df_chesh_movements, temp_movements_states)
@@ -404,20 +471,40 @@ function process_movements_from_outside(t, real_data_results, real_data_track, d
   return(real_data_results, real_data_track)
 end
 
-function process_movements_off(t, real_data_results, real_data_track, dict_of_movements, df_chesh_movements, failed_moves, temp_movements_states)
+function process_movements_off(t, real_data_results, real_data_track, dict_of_movements, df_chesh_movements, failed_moves, temp_movements_states, individual_movements)
 
   recheck_ids = Int64[]
 
   ids_to_check = unique(df_chesh_movements.first_off_row_id)[unique(df_chesh_movements.first_off_row_id) .> 0]
 
+  ids_that_have_no_movements = setdiff(1:2172, ids_to_check)
+
+  for row_id in ids_that_have_no_movements
+    real_data_results[row_id, t, [7,8,9]] .+= real_data_results[row_id, t, [4,5,6]]
+    # [10,11,12] captured in create temp states
+  end
+
   while size(ids_to_check, 1) > 0
 
     println("SIZE OF IDs TO CHECK = ", size(ids_to_check, 1))
 
+    #######################################################################################################
+    ###### FOR EACH FARM THAT MOVED ANIMALS OFF
+    #######################################################################################################
+
     for off_row_id in ids_to_check
       movements_t = df_chesh_movements[ dict_of_movements[(off_row_id, t)] , : ]
 
+      if size(movements_t, 1) == 0
+        real_data_results[off_row_id, t, 7:9] .+= temp_movements_states[off_row_id, 1:3]
+      end
+
       if size(movements_t, 1) > 0
+
+        #######################################################################################################
+        ###### IF THE FARM ONLY MOVED ANIMALS TO ONE OTHER FARM
+        #######################################################################################################
+
         if size(movements_t, 1) == 1
 
           if ( sum(movements_t[:, :n_moves_off]) > sum(temp_movements_states[off_row_id, 1:3]) )
@@ -430,7 +517,7 @@ function process_movements_off(t, real_data_results, real_data_track, dict_of_mo
           S_E_I_on = rng_mvhyper(temp_movements_states[off_row_id, 1:3], movements_t[1, :n_moves_off])
 
           real_data_results[off_row_id, t, 7:9] .+= temp_movements_states[off_row_id, 1:3]
-          real_data_results[off_row_id, t, 10:12] .+= (temp_movements_states[off_row_id, 1:3] - S_E_I_on)
+          real_data_results[off_row_id, t, 10:12] .-= S_E_I_on
 
           real_data_track[off_row_id, t, 7:9] .+= S_E_I_on
 
@@ -440,6 +527,12 @@ function process_movements_off(t, real_data_results, real_data_track, dict_of_mo
 
             real_data_track[on_row_id, t, 4:6] .+= S_E_I_on
           end
+
+          push!(individual_movements, [t; off_row_id; on_row_id; S_E_I_on ; S_E_I_on ; movements_t[1, :n_moves_off]])
+
+        #######################################################################################################
+        ###### IF THE FARM MOVED ANIMALS TO MULTIPLE OTHER FARMS
+        #######################################################################################################
 
         else # size(movements_t, 1) > 1
 
@@ -452,7 +545,7 @@ function process_movements_off(t, real_data_results, real_data_track, dict_of_mo
 
           real_data_results[off_row_id, t, 7:9] .+= temp_movements_states[off_row_id, 1:3]
 
-          real_data_results[off_row_id, t, 10:12] .+= (temp_movements_states[off_row_id, 1:3] - total_S_E_I_off)
+          real_data_results[off_row_id, t, 10:12] .-= total_S_E_I_off
 
           real_data_track[off_row_id, t, 7:9] .+= total_S_E_I_off
 
@@ -463,26 +556,39 @@ function process_movements_off(t, real_data_results, real_data_track, dict_of_mo
 
             S_E_I_on = rng_mvhyper(total_S_E_I_off, movements_t[move, :n_moves_off])
 
-            total_S_E_I_off -= S_E_I_on
-
             if on_row_id > -1.0
               temp_movements_states[on_row_id, 1:3] .+= S_E_I_on
               real_data_results[on_row_id, t, 10:12] .+= S_E_I_on
 
               real_data_track[on_row_id, t, 4:6] .+= S_E_I_on
             end
+
+            push!(individual_movements, [t; off_row_id; on_row_id; total_S_E_I_off ; S_E_I_on ; movements_t[move, :n_moves_off]])
+
+            total_S_E_I_off -= S_E_I_on
           end
 
-        end
-      end
-    end
+        end # ELSE
+
+        #######################################################################################################
+        #######################################################################################################
+
+      end # IF NUM MOVEMEMENTS > 0
+
+    end # FOR EACH FARM THAT MOVED ANIMALS
 
     if (size(recheck_ids, 1) == size(ids_to_check, 1))
       println("Stuck in a loop. ")
       println("t = ", t, " and ", size(recheck_ids, 1), " farms did not work. ")
 
       for off_row_id in ids_to_check
-        push!(failed_moves, copy([off_row_id, t]))
+
+        real_data_results[off_row_id, t, [7,8,9]] .+= temp_movements_states[off_row_id, 1:3]
+
+        movements_t = df_chesh_movements[ dict_of_movements[(off_row_id, t)] , : ]
+
+        push!(failed_moves, copy([off_row_id, (sum(movements_t[:, :n_moves_off]) - sum(temp_movements_states[off_row_id, 1:3])) ]))
+
       end
 
       break
@@ -495,7 +601,120 @@ function process_movements_off(t, real_data_results, real_data_track, dict_of_mo
 
   end #while
 
-  return(real_data_results, real_data_track, failed_moves)
+  return(real_data_results, real_data_track, failed_moves, temp_movements_states, ids_to_check, individual_movements)
+end
+
+function add_initial_animals_to_fix_movement_failure(t, real_data_results, real_data_track, dict_of_movements, df_chesh_movements, added_via_moves, temp_movements_states, ids_to_check, individual_movements)
+
+  #######################################################################################################
+  ###### FOR EACH FARM THAT MOVED ANIMALS OFF
+  #######################################################################################################
+
+  for off_row_id in ids_to_check
+
+    movements_t = df_chesh_movements[ dict_of_movements[(off_row_id, t)] , : ]
+
+    #######################################################################################################
+    ###### IF THE FARM ONLY MOVED ANIMALS TO ONE OTHER FARM
+    #######################################################################################################
+
+    if size(movements_t, 1) == 1
+
+      if ( sum(movements_t[:, :n_moves_off]) > sum(temp_movements_states[off_row_id, 1:3]) )
+
+        total_animals = sum(temp_movements_states[off_row_id, 1:3])
+        total_moves_off = sum(movements_t[:, :n_moves_off])
+        extra_animals_needed = total_moves_off - total_animals
+
+        for time in 1:max(1, (t-1))
+          real_data_results[off_row_id, time, [4,7,10,13,16,19]] += fill(extra_animals_needed, 6)
+        end
+
+        real_data_results[off_row_id, t, [4, 10]] += [extra_animals_needed, extra_animals_needed]
+
+        temp_movements_states[off_row_id, 1] += extra_animals_needed
+
+        push!(added_via_moves, copy([off_row_id, t, extra_animals_needed]))
+        println("t = ", t, ", off_row_id = ", off_row_id, ", and ", extra_animals_needed, " extra animals added.")
+      end
+
+      on_row_id = movements_t[1, :last_on_row_id]
+
+      S_E_I_on = rng_mvhyper(temp_movements_states[off_row_id, 1:3], movements_t[1, :n_moves_off])
+
+      real_data_results[off_row_id, t, 7:9] .+= temp_movements_states[off_row_id, 1:3]
+      real_data_results[off_row_id, t, 10:12] .-= S_E_I_on
+
+      real_data_track[off_row_id, t, 7:9] .+= S_E_I_on
+
+      if on_row_id > -1.0
+        temp_movements_states[on_row_id, 1:3] .+= S_E_I_on
+        real_data_results[on_row_id, t, 10:12] .+= S_E_I_on
+
+        real_data_track[on_row_id, t, 4:6] .+= S_E_I_on
+      end
+
+      push!(individual_movements, [t; off_row_id; on_row_id; S_E_I_on ; S_E_I_on ; movements_t[1, :n_moves_off]])
+
+    #######################################################################################################
+    ###### IF THE FARM MOVED ANIMALS TO MULTIPLE OTHER FARMS
+    #######################################################################################################
+
+    else # size(movements_t, 1) > 1
+
+      if ( sum(movements_t[:, :n_moves_off]) > sum(temp_movements_states[off_row_id, 1:3]) )
+
+        total_animals = sum(temp_movements_states[off_row_id, 1:3])
+        total_moves_off = sum(movements_t[:, :n_moves_off])
+        extra_animals_needed = total_moves_off - total_animals
+
+        for time in 1:max(1, (t-1))
+          real_data_results[off_row_id, time, [4,7,10,13,16,19]] += fill(extra_animals_needed, 6)
+        end
+
+        real_data_results[off_row_id, t, [4, 10]] += [extra_animals_needed, extra_animals_needed]
+
+        temp_movements_states[off_row_id, 1] += extra_animals_needed
+
+        push!(added_via_moves, copy([off_row_id, t, extra_animals_needed]))
+        println("t = ", t, ", off_row_id = ", off_row_id, ", and ", extra_animals_needed, " extra animals added.")
+      end
+
+      total_S_E_I_off = rng_mvhyper(temp_movements_states[off_row_id, 1:3], sum(movements_t[:, :n_moves_off]))
+
+      real_data_results[off_row_id, t, 7:9] .+= temp_movements_states[off_row_id, 1:3]
+
+      real_data_results[off_row_id, t, 10:12] .-= total_S_E_I_off
+
+      real_data_track[off_row_id, t, 7:9] .+= total_S_E_I_off
+
+
+      for move in 1:size(movements_t, 1)
+
+        on_row_id = movements_t[move, :last_on_row_id]
+
+        S_E_I_on = rng_mvhyper(total_S_E_I_off, movements_t[move, :n_moves_off])
+
+        if on_row_id > -1.0
+          temp_movements_states[on_row_id, 1:3] .+= S_E_I_on
+          real_data_results[on_row_id, t, 10:12] .+= S_E_I_on
+
+          real_data_track[on_row_id, t, 4:6] .+= S_E_I_on
+        end
+
+        push!(individual_movements, [t; off_row_id; on_row_id; total_S_E_I_off ; S_E_I_on ; movements_t[move, :n_moves_off]])
+
+        total_S_E_I_off -= S_E_I_on
+      end
+
+    end # ELSE
+
+    #######################################################################################################
+    #######################################################################################################
+
+  end # FOR EACH FARM THAT MOVED ANIMALS
+
+  return(real_data_results, real_data_track, added_via_moves, individual_movements)
 end
 
 
@@ -526,6 +745,8 @@ function generate_infection_process(t, real_data_results, real_data_track, real_
 
   for row_id in 1:2172
 
+    real_data_results[row_id, t, [13,14,15]] .= copy(real_data_results[row_id, t, [10,11,12]])
+
     states = real_data_results[row_id, t, [10,11,12]]
 
     p_env_prev = real_data_parish[f_to_p_dict[(row_id)][1], t, 13]
@@ -553,7 +774,42 @@ end
 
 ###~~~ Testing ~~~###
 
-function process_testing(t, real_data_results, real_data_track)
+function add_infection_events_to_fix_testing_failure(t, row_id, num_missing_cases, real_data_results, real_data_track, real_data_pers)
+
+  if real_data_results[row_id, t, 13] < num_missing_cases
+    # if not enough susceptibles now
+    # Without editting other events these events can't be added
+    # So just add to the initial conditions
+    # for time in 1:max(1, (t-1))
+    #   real_data_results[row_id, time, [5,8,11,14,17,20]] += [num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases]
+    # end
+    # real_data_results[row_id, t, [5,8,11,14]] += [num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases]
+    # println("Added ", num_missing_cases, " exposed cattle at t and all previous timesteps.")
+    println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Not enough cS")
+  elseif real_data_pers[row_id, t, 4] == 0
+    # if infection probability is 0 just add to inital conditions
+    # for time in 1:max(1, (t-1))
+    #   real_data_results[row_id, time, [5,8,11,14,17,20]] += [num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases]
+    # end
+    # real_data_results[row_id, t, [5,8,11,14]] += [num_missing_cases, num_missing_cases, num_missing_cases, num_missing_cases]
+    # println("Added ", num_missing_cases, " exposed cattle at t and all previous timesteps.")
+    println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Exp Prob 0")
+  else
+    # add events
+    real_data_track[row_id, t, [13]] .+= num_missing_cases
+    # remove susceptibles
+    real_data_results[row_id, t, [13]] .-= num_missing_cases
+    real_data_results[row_id, t, [16]] .-= num_missing_cases
+    # add exposeds
+    real_data_results[row_id, t, [14]] .+= num_missing_cases
+    real_data_results[row_id, t, [17]] .+= num_missing_cases
+    println("Added ", num_missing_cases, " exposed cattle at t only.")
+  end
+
+  return(real_data_results, real_data_track)
+end
+
+function process_testing(t, real_data_results, real_data_track, real_data_pers, missing_animals_testing)
 
   for row_id in 1:2172
 
@@ -561,17 +817,24 @@ function process_testing(t, real_data_results, real_data_track)
 
     num_tests, num_slaughtered = real_data_track[row_id, t, [15,16]]
 
+    states = real_data_results[row_id, t, [13,14,15]]
+
+    if sum(states) < num_tests
+      # println("Testing: Not enough animals to test. t = ", t, ", row_id = ", row_id, ", states = ", sum(states), ", number of tests = ", num_tests)
+      # println("Number of tests reduced by ", (num_tests - sum(states)))
+      push!(missing_animals_testing, copy([row_id, t, (num_tests - sum(states))]))
+      real_data_track[row_id, t, 15] = sum(states)
+      num_tests = real_data_track[row_id, t, 15]
+    end
+
     if num_tests > 0
 
-      states = real_data_results[row_id, t, [13,14,15]]
-
-      if sum(states) < num_tests
-        println("Testing: Not enough animals to test. t = ", t, ", row_id = ", row_id)
-      end
-
       if sum(states[2:3]) < num_slaughtered
-        println("Testing: Not enough infected animals to slaughter. t = ", t, ", row_id = ", row_id)
-        continue
+        println("Testing: Not enough infected animals to slaughter. t = ", t, ", row_id = ", row_id, ", states = ", Array(states), "   ", sum(states[2:3]), ", number slaughtered = ", num_slaughtered)
+        num_missing_cases = num_slaughtered - sum(states[2:3])
+        real_data_results, real_data_track = add_infection_events_to_fix_testing_failure(t, row_id, num_missing_cases, real_data_results, real_data_track, real_data_pers)
+        states = real_data_results[row_id, t, [13,14,15]]
+        #continue
       end
 
       positive_tests = rng_mvhyper(states[2:3], num_slaughtered)
@@ -579,12 +842,10 @@ function process_testing(t, real_data_results, real_data_track)
       real_data_track[row_id, t, [17, 18]] .+= positive_tests
 
       real_data_results[row_id, t, [17,18]] .-= positive_tests
-
     end
-
   end
 
-  return(real_data_results, real_data_track)
+  return(real_data_results, real_data_track, missing_animals_testing)
 end
 
 
@@ -612,7 +873,7 @@ function process_deaths(t, real_data_results, real_data_track)
     states = real_data_results[row_id, t, [19,20,21]] #post births
 
     if sum(states) < num_deaths
-      println("Deaths: Not enough animals to remove. t = ", t, ", row_id = ", row_id)
+      println("Deaths: Not enough animals to remove. t = ", t, ", row_id = ", row_id, ", states = ", Array(states), ", number of deaths = ", num_deaths)
       continue
     end
 
@@ -663,6 +924,47 @@ function update_parish(t, real_data_results, real_data_track, real_data_pers, re
   return(real_data_results, real_data_track, real_data_pers, real_data_parish)
 end
 
+###~~~ End ~~~###
+
+function reupdate_parishes(real_data_results, real_data_track, real_data_pers, real_data_parish, f_to_p_dict)
+
+  for parish_row_id in 1:311
+
+    parish_members_row_ids = f_to_p_dict[ real_data_parish[parish_row_id, 1, 17] ][3]
+
+    for t in 1:360
+
+      real_data_parish[parish_row_id, t, 4:6] = sum(Array(real_data_results[parish_members_row_ids, t, 4:6]), dims = 1)
+
+      real_data_parish[parish_row_id, t, 7:9] = sum(Array(real_data_results[parish_members_row_ids, t, 19:21]), dims = 1)
+
+    end
+
+  end
+
+  return(real_data_results, real_data_track, real_data_pers, real_data_parish, f_to_p_dict)
+end
+
+function reupdate_pers(real_data_results, real_data_pers, real_data_parish, β, F, γ)
+
+  for row_id in 1:2172
+
+    for t in 1:360
+
+      states = real_data_results[row_id, t, [10,11,12]]
+
+      p_env_prev = real_data_parish[f_to_p_dict[(row_id)][1], t, 13]
+
+      real_data_pers[row_id, t, [4]] .= calc_exp_prop(states, p_env_prev, β, F)
+
+      real_data_pers[row_id, t, [5]] .= calc_inf_prob(γ)
+
+    end
+
+  end
+
+  return(real_data_pers)
+end
 
 
 ###################
@@ -675,10 +977,15 @@ real_data_pers_TEST = deepcopy(real_data_pers)
 real_data_parish_TEST = deepcopy(real_data_parish)
 
 failed_moves = []
+added_via_moves = []
+missing_animals_testing = []
+individual_movements = []
+
+Random.seed!(1)
 
 for week in 1:360
 
-  println("----------------------------------- WEEK = ", week, " -----------------------------------")
+  println("--------- WEEK = ", week, " -------------------------------------------------------------")
 
   println("----------------------------------- INITIALISING -----------------------------------")
 
@@ -688,7 +995,7 @@ for week in 1:360
 
   println("----------------------------------- CREATING TEMP MOVEMENTS -----------------------------------")
 
-  temp_movement_states = create_temp_movement_states(week, real_data_results_TEST)
+  temp_movement_states, real_data_results_TEST = create_temp_movement_states(week, real_data_results_TEST)
 
   println("----------------------------------- PROCESSING MOVEMENTS FROM OUTSIDE -----------------------------------")
 
@@ -696,15 +1003,19 @@ for week in 1:360
 
   println("----------------------------------- PROCESSING MOVEMENTS OFF -----------------------------------")
 
-  real_data_results_TEST, real_data_track_TEST, failed_moves = process_movements_off(week, real_data_results_TEST, real_data_track_TEST, dict_of_movements, df_chesh_movements, failed_moves, temp_movement_states)
+  real_data_results_TEST, real_data_track_TEST, failed_moves, temp_movements_states, ids_to_check, individual_movements = process_movements_off(week, real_data_results_TEST, real_data_track_TEST, dict_of_movements, df_chesh_movements, failed_moves, temp_movement_states, individual_movements)
+
+  println("----------------------------------- FIXING MOVEMENTS -----------------------------------")
+
+  real_data_results_TEST, real_data_track_TEST, added_via_moves, individual_movements = add_initial_animals_to_fix_movement_failure(week, real_data_results_TEST, real_data_track_TEST, dict_of_movements, df_chesh_movements, added_via_moves, temp_movements_states, ids_to_check, individual_movements)
 
   println("----------------------------------- GENERATING INFECTION PROCESS -----------------------------------")
 
-  real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST = generate_infection_process(week, real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, real_data_parish_TEST, f_to_p_dict, 0.0004, 0.0004, 0.015)
+  real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST = generate_infection_process(week, real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, real_data_parish_TEST, f_to_p_dict, 0.002, 0.002, 0.015)
 
   println("----------------------------------- PROCESSING TESTING -----------------------------------")
 
-  real_data_results_TEST, real_data_track_TEST = process_testing(week, real_data_results_TEST, real_data_track_TEST)
+  real_data_results_TEST, real_data_track_TEST, missing_animals_testing = process_testing(week, real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, missing_animals_testing)
 
   println("----------------------------------- PROCESSING BIRTHS -----------------------------------")
 
@@ -719,3 +1030,131 @@ for week in 1:360
   real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, real_data_parish_TEST = update_parish(week, real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, real_data_parish_TEST, f_to_p_dict, 0.05)
 
 end
+
+real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, real_data_parish_TEST = reupdate_parishes(real_data_results_TEST, real_data_track_TEST, real_data_pers_TEST, real_data_parish_TEST, f_to_p_dict)
+
+real_data_pers_TEST = reupdate_pers(real_data_results_TEST, real_data_pers_TEST, real_data_parish_TEST, 0.002, 0.002, 0.015)
+
+
+################ Reformat Individual Movements ################
+
+individual_movements_record = zeros(size(individual_movements, 1), 10)
+
+for record in 1:size(individual_movements, 1)
+
+  individual_movements_record[record, :] = individual_movements[record]
+
+end
+
+individual_movements_record
+
+
+
+################ DONE ################
+
+save("Data/Set Real/real_data_results.jld2", "array", real_data_results_TEST)
+
+save("Data/Set Real/real_data_track.jld2", "array", real_data_track_TEST)
+
+save("Data/Set Real/real_data_pers.jld2", "array", real_data_pers_TEST)
+
+save("Data/Set Real/real_data_parish.jld2", "array", real_data_parish_TEST)
+
+save("Data/Set Real/df_chesh_movements.jld2", "array", df_chesh_movements)
+
+save("Data/Set Real/dict_of_movements.jld2", "array", dict_of_movements)
+
+save("Data/Set Real/f_to_p_dict.jld2", "array", f_to_p_dict)
+
+save("Data/Set Real/individual_movements_record.jld2", "array", individual_movements_record)
+
+
+
+
+
+
+
+
+
+missing_animals_testing
+
+adjustments = zeros(2172, 2)
+adjustments[:, 1] = 1:2172
+
+for item in missing_animals_testing
+
+  row_id = item[1]
+  to_add = item[2]
+
+  adjustments[row_id, 2] += to_add
+
+end
+
+adjustments_testing = DataFrame(adjustments, :auto)
+
+adjustments_testing[adjustments_testing[:,2] .> 0, :]
+
+sort(adjustments_testing[adjustments_testing[:,2] .> 0, :], order(2, rev=true))
+
+sum(adjustments_testing[adjustments_testing[:,2] .> 0, 2])
+
+
+# CSV.write("Data/adjustments_testing_4.csv", adjustments_testing, header = true)
+
+
+# failed_moves
+#
+# initially_populated_row_ids = real_data_results[(real_data_results[:, 1, 4] .> 0 .|| real_data_results[:, 1, 5] .> 0 .|| real_data_results[:, 1, 6] .> 0), 1, 2]
+#
+# adjustments = zeros(2172, 2)
+# adjustments[:, 1] = 1:2172
+#
+# for item in failed_moves
+#
+#   row_id = item[1]
+#   to_add = item[2]
+#
+#   if row_id in initially_populated_row_ids
+#     if to_add > adjustments[row_id, 2]
+#       adjustments[row_id, 2] = to_add
+#     end
+#   end
+#
+# end
+#
+# adjustments_moves = DataFrame(adjustments, :auto)
+#
+# adjustments_moves[adjustments_moves[:,2] .> 0, :]
+#
+# sum(adjustments_moves[adjustments_moves[:,2] .> 0, 2])
+#
+#
+# CSV.write("Data/adjustments_moves_3.csv", adjustments_moves, header = true)
+#
+# sum(real_data_results[:,1,4:6])
+
+
+
+added_via_moves
+
+adjustments = zeros(2172, 2)
+adjustments[:, 1] = 1:2172
+
+for item in added_via_moves
+
+  row_id = item[1]
+  to_add = item[3]
+
+  adjustments[row_id, 2] += to_add
+
+end
+
+adjustments_moves = DataFrame(adjustments, :auto)
+
+adjustments_moves[adjustments_moves[:,2] .> 0, :]
+
+sum(adjustments_moves[adjustments_moves[:,2] .> 0, 2])
+
+sort(adjustments_moves[adjustments_moves[:,2] .> 0, :], order(2, rev=true))
+
+CSV.write("Data/adjustments_moves.csv", adjustments_moves, header = true)

@@ -12,7 +12,7 @@ df_chesh_initial_states_raw = load("Data/RealDataInit/df_initial_conditions.rds"
 
 df_chesh_movements_raw = load("Data/RealDataInit/df_movements_aggregated_farm_pairs_week.rds")
 
-df_chesh_tests_raw = load("Data/RealDataInit/df_tests_aggregated_cph_week_counts.rds")
+df_chesh_tests_raw = load("Data/RealDataInit/df_tests_aggregated_cph_week_counts_WHTs.rds")
 
 df_chesh_births_raw = load("Data/RealDataInit/df_births_aggregated_farm_week.rds")
 
@@ -249,6 +249,7 @@ for parish in 1:size(area_of_parish_all, 1)
     real_data_parish[parish, :, 2] .= parish
     real_data_parish[parish, :, 3] .= parish
     real_data_parish[parish, :, 12] .= area_of_parish_all[parish]
+    real_data_parish[parish, 1, 13] = 0.001 # initial background inf
     real_data_parish[parish, :, [15,16]] .= Array(@subset(cph_to_formatted, :row_id .== first_h_of_p_ALL[parish]))[:, [2,3]]
     real_data_parish[parish, :, 17] .= first_h_of_p_ALL[parish]
 end
@@ -303,21 +304,21 @@ end
 ### Increase the number of initial exposed
 ##########
 
-for row_id in 1:2172
-  cS = real_data_results[row_id, 1, 4]
-
-  for level in 1:25
-    if cS == level
-      real_data_results[row_id, 1, 4] -= level
-      real_data_results[row_id, 1, 5] += level
-    end
-  end
-
-  if cS > 25
-    real_data_results[row_id, 1, 4] -= 25
-    real_data_results[row_id, 1, 5] += 25
-  end
-end
+# for row_id in 1:2172
+#   cS = real_data_results[row_id, 1, 4]
+#
+#   for level in 1:25
+#     if cS == level
+#       real_data_results[row_id, 1, 4] -= level
+#       real_data_results[row_id, 1, 5] += level
+#     end
+#   end
+#
+#   if cS > 25
+#     real_data_results[row_id, 1, 4] -= 25
+#     real_data_results[row_id, 1, 5] += 25
+#   end
+# end
 
 
 ###################################
@@ -363,6 +364,29 @@ end
 # save("Data/RealDataInit/processed_track.jld2", "array", real_data_track)
 
 real_data_track = load("Data/RealDataInit/processed_track.jld2")["array"]
+
+
+missing_infection = Int64[]
+
+for row_id in 1:2172
+  if real_data_results[row_id, 1, 4] > 50
+    append!(missing_infection, row_id)
+  end
+end
+
+for row_id in 1:2172
+  if real_data_results[row_id, 1, 4] < 51
+    if real_data_results[row_id, 1, 4] > 9
+      if sum(real_data_track[row_id, :, 16]) > 0
+        append!(missing_infection, row_id)
+      end
+    end
+  end
+end
+
+for row_id in missing_infection
+  real_data_results[row_id, 1, [4,5,6]] += [-5, 2, 3]
+end
 
 ############################
 #### Functional objects ####
@@ -741,6 +765,46 @@ function calc_inf_prob(γ)
   return(inf_prob)
 end
 
+function catch_upcoming_detection_events(t, ahead, row_id, real_data_track, real_data_pers, states, new_E, new_I)
+
+  success = 0
+
+  if t+ahead < 361
+
+    detections_upcoming = real_data_track[row_id, t+ahead, 16]
+
+    if sum(states[1:2]) > detections_upcoming # enough animals for events
+      if sum(states[2:3]) < detections_upcoming # enough infected animals to detect
+
+        print("row_id = ", row_id,"   ",
+              "detections_upcoming = ", detections_upcoming,"   ",
+              "states = ", Array(states), "    ",
+              "c_exp_prob = ", real_data_pers[row_id, t, 4], "    ",
+              "c_inf_prob = ", real_data_pers[row_id, t, 5],
+              "\n")
+
+        extra_detections = (detections_upcoming - sum(states[2:3]))
+
+        while sum([new_E, new_I]) < extra_detections
+          if sum(states[1:2]) > extra_detections*2
+            new_E, new_I = rng_mvhyper(states[1:2], extra_detections*2) #double extras needed because of low sensitivity
+          else
+            new_E, new_I = rng_mvhyper(states[1:2], extra_detections)
+          end
+          # new_E = rand(Binomial(convert(Int64, states[1]), real_data_pers[row_id, t, 4]))
+          # new_I = rand(Binomial(convert(Int64, states[2]), real_data_pers[row_id, t, 5]))
+        end
+
+        success = 1
+
+      end
+    end
+
+  end
+
+  return(new_E, new_I, success)
+end
+
 function generate_infection_process(t, real_data_results, real_data_track, real_data_pers, real_data_parish, f_to_p_dict, β, F, γ)
 
   for row_id in 1:2172
@@ -759,6 +823,33 @@ function generate_infection_process(t, real_data_results, real_data_track, real_
 
     new_I = rand(Binomial(convert(Int64, states[2]), real_data_pers[row_id, t, 5]))
 
+    # Catch future detection events
+
+    events_finalised = 0
+
+    if (real_data_pers[row_id, t, 4] > 0)
+      if events_finalised == 0
+        new_E, new_I, events_finalised = catch_upcoming_detection_events(t, 5, row_id, real_data_track, real_data_pers, states, new_E, new_I)
+      end
+
+      if events_finalised == 0
+        new_E, new_I, events_finalised = catch_upcoming_detection_events(t, 4, row_id, real_data_track, real_data_pers, states, new_E, new_I)
+      end
+
+      if events_finalised == 0
+        new_E, new_I, events_finalised = catch_upcoming_detection_events(t, 3, row_id, real_data_track, real_data_pers, states, new_E, new_I)
+      end
+
+      if events_finalised == 0
+        new_E, new_I, events_finalised = catch_upcoming_detection_events(t, 2, row_id, real_data_track, real_data_pers, states, new_E, new_I)
+      end
+
+      if events_finalised == 0
+        new_E, new_I, events_finalised = catch_upcoming_detection_events(t, 1, row_id, real_data_track, real_data_pers, states, new_E, new_I)
+      end
+    end
+
+    # Update states
 
     real_data_track[row_id, t, [13, 14]] .+= [new_E, new_I]
 
@@ -981,7 +1072,7 @@ added_via_moves = []
 missing_animals_testing = []
 individual_movements = []
 
-Random.seed!(1)
+Random.seed!(3)
 
 for week in 1:360
 

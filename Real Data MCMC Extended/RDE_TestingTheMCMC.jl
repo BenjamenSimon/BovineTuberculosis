@@ -71,7 +71,7 @@ epi_params_dists = [d_β_c, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 
 Random.seed!(7)
 
-r19, or19, ar19, tr19, ut19, icr19, ictr19, DRT_pr_19, DPP_pr_19 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [true, true], data_aug_infer = [true, true, true, true, true, true, true, true, true, true, true],
+r19, or19, ar19, tr19, ut19, icr19, ictr19, DRT_pr_19, DPP_pr_19 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false], data_aug_infer = [true, true, true, true, true, true, true, true, true, true, true],
                           DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
                           moves_record = record_of_movements,
                           params_init = epi_params_true, tuning = [0.03, 50, 0.04, 4],

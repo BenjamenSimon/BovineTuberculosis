@@ -375,7 +375,7 @@ function propose_AddRem_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
                                           # :arDeaths_Sdths_after, :arDeaths_Edths_after, :arDeaths_Idths_after,
                                           # :arDeaths_cS, :arDeaths_cE, :arDeaths_cI
 
-  if sum(Δs) == 0
+  if all(Δs .== 0)
     log_q_ratio = -Inf
     AddRem_Deaths_track[4] = 3
     return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, [0.,0.,0.,0.], AddRem_Deaths_track)
@@ -393,7 +393,7 @@ function propose_AddRem_Deaths(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   end
 
   ### Calculate the log q ratio (proposal density ratio) ###
-  log_q_ratio = log_pdf_mvhyper(cStates_postDet, deaths_t) - log_pdf_mvhyper(cStates_postDet, deaths_t_new) # q_cur_given_prime - q_prime_given_cur
+  log_q_ratio = log_pdf_mvhyper(cStates_postDet_t, deaths_t) - log_pdf_mvhyper(cStates_postDet_t, deaths_t_new) # q_cur_given_prime - q_prime_given_cur
 
   return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, log_q_ratio, scope, AddRem_Deaths_track)
 end
@@ -1187,7 +1187,7 @@ function propose_change_init_penv(DATA_res_and_track_cur, DATA_pers_and_parish_c
 
   ### Generate the update ###
 
-  Δ = rand(1)[1] * rand([-1,1]) #change in p_env_init
+  Δ = rand(1)[1]*0.001 * rand([-1,1]) #change in p_env_init
 
   AddRem_penv_track = [p_position, t, 0., 0., Δ, -999., -999.]
                       # :arpenv_position, :arpenv_t, :arpenv_is_accepted, :arpenv_reason, :arpenv_Δ,

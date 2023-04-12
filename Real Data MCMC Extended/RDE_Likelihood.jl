@@ -554,3 +554,38 @@ function calc_llh_h_and_p(scope::Scope, llh_array_cur, p_env_llh_array_cur)
 
   return(llh + p_env_llh)
 end
+
+
+### TEST ###
+
+# llh_array = zeros(size(DATA_res_and_track[1], 1), 360, 8)
+#
+# p_env_llh_array = zeros(size(DATA_pers_and_parish[2], 1), 360, 2)
+#
+# global_scope = Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), Vector(1:8))
+#
+# llh_array, p_env_llh_array = update_llh_array_ALL(global_scope,
+#                                                           llh_array, p_env_llh_array,
+#                                                           DATA_res_and_track, DATA_pers_and_parish, record_of_movements,
+#                                                           [0.002, 0.015, 0.004, 0.05, 0.75, 0.2], dict_of_movements, f_to_p_structs)
+#
+# calc_llh_h(global_scope, llh_array)
+#
+# calc_llh_h_and_p(global_scope, llh_array, p_env_llh_array)
+#
+#
+#
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [1]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [2]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [3]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [4]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [5]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [6]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [7]), llh_array)
+# calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [8]), llh_array)
+#
+# which(llh_array[:, :, 3] .== -Inf)
+#
+# findall(x -> x == -Inf, llh_array[:, :, 3])
+#
+# llh_array[170, 60:70, :]

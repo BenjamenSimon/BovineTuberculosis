@@ -887,7 +887,7 @@ function update_data_change_init_S_to_E(DATA_res_and_track_cur, DATA_pers_and_pa
   ############
 
   # :cS_init, :cS_Moves, :cS_postM, :cS_postEI, :cS_postDet, :cS_final
-  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [4,7,10,13,16,19]] .-= Δ
+  DATA_res_and_track_prime[1][position, lower_t:upper_t, [4,7,10,13,16,19]] .-= Δ
 
   # :cE_init, :cE_Moves, :cE_postM, :cE_postEI, :cE_postDet, :cE_final
   DATA_res_and_track_prime[1][position, lower_t:upper_t, [5,8,11,14,17,20]] .+= Δ
@@ -909,7 +909,7 @@ function update_data_change_init_S_to_E(DATA_res_and_track_cur, DATA_pers_and_pa
   ##############
 
   # :pcS_init, :pcS_final
-  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [4,7]] .-= Δ
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [4,7]] .-= Δ
 
   # :pcE_init, :pcE_final
   DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [5,8]] .+= Δ
@@ -943,7 +943,7 @@ function update_data_change_init_S_to_I(DATA_res_and_track_cur, DATA_pers_and_pa
   ############
 
   # :cS_init, :cS_Moves, :cS_postM, :cS_postEI, :cS_postDet, :cS_final
-  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [4,7,10,13,16,19]] .-= Δ
+  DATA_res_and_track_prime[1][position, lower_t:upper_t, [4,7,10,13,16,19]] .-= Δ
 
   # :cI_init, :cI_Moves, :cI_postM, :cI_postEI, :cI_postDet, :cI_final
   DATA_res_and_track_prime[1][position, lower_t:upper_t, [6,9,12,15,18,21]] .+= Δ
@@ -964,7 +964,7 @@ function update_data_change_init_S_to_I(DATA_res_and_track_cur, DATA_pers_and_pa
   ##############
 
   # :pcS_init, :pcS_final
-  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [4,7]] .-= Δ
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [4,7]] .-= Δ
 
   # :pcI_init, :pcI_final
   DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [6,9]] .+= Δ
@@ -1005,7 +1005,7 @@ function update_data_change_init_E_to_S(DATA_res_and_track_cur, DATA_pers_and_pa
   ############
 
   # :cS_init, :cS_Moves, :cS_postM, :cS_postEI, :cS_postDet, :cS_final
-  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [4,7,10,13,16,19]] .+= Δ
+  DATA_res_and_track_prime[1][position, lower_t:upper_t, [4,7,10,13,16,19]] .+= Δ
 
   # :cE_init, :cE_Moves, :cE_postM, :cE_postEI, :cE_postDet, :cE_final
   DATA_res_and_track_prime[1][position, lower_t:upper_t, [5,8,11,14,17,20]] .-= Δ
@@ -1026,7 +1026,7 @@ function update_data_change_init_E_to_S(DATA_res_and_track_cur, DATA_pers_and_pa
   ##############
 
   # :pcS_init, :pcS_final
-  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [4,7]] .+= Δ
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [4,7]] .+= Δ
 
   # :pcE_init, :pcE_final
   DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [5,8]] .-= Δ
@@ -1122,7 +1122,7 @@ function update_data_change_init_I_to_S(DATA_res_and_track_cur, DATA_pers_and_pa
   ############
 
   # :cS_init, :cS_Moves, :cS_postM, :cS_postEI, :cS_postDet, :cS_final
-  DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [4,7,10,13,16,19]] .+= Δ
+  DATA_res_and_track_prime[1][position, lower_t:upper_t, [4,7,10,13,16,19]] .+= Δ
 
   # :cI_init, :cI_Moves, :cI_postM, :cI_postEI, :cI_postDet, :cI_final
   DATA_res_and_track_prime[1][position, lower_t:upper_t, [6,9,12,15,18,21]] .-= Δ
@@ -1143,7 +1143,7 @@ function update_data_change_init_I_to_S(DATA_res_and_track_cur, DATA_pers_and_pa
   ##############
 
   # :pcS_init, :pcS_final
-  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, (lower_t+1):upper_t, [4,7]] .+= Δ
+  DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [4,7]] .+= Δ
 
   # :pcI_init, :pcI_final
   DATA_pers_and_parish_prime[2][f_to_p_structs[position].parish_position, lower_t:upper_t, [6,9]] .-= Δ
@@ -1265,7 +1265,7 @@ function update_data_change_init_penv(DATA_res_and_track_cur, DATA_pers_and_pari
   ### Quick check for validity
   ###############
 
-  posi_check = (DATA_pers_and_parish_cur[2][p_position, (lower_t):(upper_t), [10,13,14]] .>= 0)
+  posi_check = (DATA_pers_and_parish_prime[2][p_position, (lower_t):(upper_t), [10,13,14]] .>= 0)
 
   if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
     return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)

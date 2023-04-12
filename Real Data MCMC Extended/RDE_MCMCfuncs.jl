@@ -476,6 +476,12 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                             DATA_res_and_track_cur, DATA_pers_and_parish_cur, moves_record,
                                                             params_cur, dict_of_movements, f_to_p_structs)
 
+
+  DATA_res_and_track_best = deepcopy(DATA_res_and_track_cur)
+  DATA_pers_and_parish_best = deepcopy(DATA_pers_and_parish_cur)
+
+  llh_max = calc_llh_h_and_p(global_scope, llh_array_cur, p_env_llh_array_cur)
+
   ###########################
   ### ~~ THE ALGORITHM ~~ ###
   ###########################
@@ -863,6 +869,15 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
         end
         it = it + 1
 
+        llh_new =  calc_llh_h_and_p(global_scope, llh_array_cur, p_env_llh_array_cur)
+
+        if llh_new > llh_max
+          DATA_res_and_track_best = deepcopy(DATA_res_and_track_cur)
+          DATA_pers_and_parish_best = deepcopy(DATA_pers_and_parish_cur)
+
+          llh_max = deepcopy(llh_new)
+        end
+
         # if it == 5500
         #   it = 999999
         # end
@@ -871,7 +886,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
 
     res_df, other_res_df, aug_res_df, tuning_res_df, update_tracker_df, change_init_res_df, init_conds_update_tracker_df = rename_results_arrays(res, other_res, aug_res, tuning_res, update_tracker, change_init_res, init_conds_update_tracker)
 
-  return(res_df, other_res_df, aug_res_df, tuning_res_df, update_tracker_df, change_init_res_df, init_conds_update_tracker_df, DATA_res_and_track_cur, DATA_pers_and_parish_cur)
+  return(res_df, other_res_df, aug_res_df, tuning_res_df, update_tracker_df, change_init_res_df, init_conds_update_tracker_df, DATA_res_and_track_best, DATA_pers_and_parish_best)
 end
 
 # Reasons

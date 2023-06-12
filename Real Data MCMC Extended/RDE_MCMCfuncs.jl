@@ -126,7 +126,6 @@ function mh_accept_ratio(post, post_prime, log_q_ratio)
   return(log_α_ratio)
 end
 
-
 # MH function for parameters
 
 function metropolis_hastings_step_params(N_its, res, other_res, it,
@@ -152,7 +151,7 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
 
   # println("Proposed Params")
 
-  if any(params_draw[5:6] .> 1)
+  if any(params_draw[4:6] .> 1)
     log_q_ratio = -Inf
   end
 
@@ -163,6 +162,7 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
   end
 
   # Update llh arrays
+
   llh_array_prime, p_env_llh_array_prime = llh_update_func(scope, llh_array_cur, p_env_llh_array_cur, DATA_res_and_track_prime, DATA_pers_and_parish_prime, params_draw, f_to_p_structs)
 
   # println("Updated llh")
@@ -170,8 +170,6 @@ function metropolis_hastings_step_params(N_its, res, other_res, it,
   # Calculate new posterior
 
   post_prime = posterior_func(llh_array_prime, p_env_llh_array_prime, scope, log_prior_dists, params_draw)
-
-  # println("Calculated posterior")
 
   # Calculate MH acceptance probability
   log_α_ratio = mult_mh_accept_ratio(post_cur, post_prime, log_q_ratio, log_params_cur, log_params_draw)
@@ -222,7 +220,6 @@ function metropolis_hastings_step_aug(proposal_func, posterior_func,
     return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, [false, -Inf, Inf, -Inf, dataaug_track[4]], dataaug_track)
                                                               # [is_accepted, log_α_ratio, post_cur, post_prime, reason]
   end
-
 
   # Update llh arrays
 
@@ -396,7 +393,7 @@ function Initialise(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params
 
     # Update the probabilities
 
-    DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log.(epi_params_draw), f_to_p_structs, scope_init)
+    DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params_draw, f_to_p_structs, scope_init)
 
     #Calculate the log-likelihood
 
@@ -593,6 +590,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                                                       llh_array_cur, p_env_llh_array_cur,
                                                                                       f_to_p_structs, ids_to_pos_dict,
                                                                                       moves_record, dict_of_movements)
+
         end
 
 
@@ -700,28 +698,6 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
 
 
 
-      ##############################################
-      ### Add/Remove Movement from Outside event ###
-      ##############################################
-
-        mh_res_AddRem_Movements_outside::Vector{Float64} = [-Inf, -Inf, Inf, Inf, Inf]
-        AddRem_Movements_outside_track::Vector{Float64} = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
-                                  # :arMoves_out_position, :arMoves_out_t, :arMoves_out_is_accepted, :arMoves_out_reason,
-                                                      # :arMoves_out_ΔS, :arMoves_out_ΔE, :arMoves_out_ΔI,
-                                                      # :arMoves_out_S_on_out_before, :arMoves_out_E_on_out_before, :arMoves_out_I_on_out_before,
-                                                      # :arMoves_out_S_on_out_after, :arMoves_out_E_on_out_after, :arMoves_out_I_on_out_after
-
-        if data_aug_infer[9] == true
-
-          DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Movements_outside, AddRem_Movements_outside_track =
-                                                metropolis_hastings_step_aug(propose_AddRem_outside_move_states, generic_posterior_dataaug,
-                                                                              params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur,
-                                                                              llh_array_cur, p_env_llh_array_cur,
-                                                                              f_to_p_structs, ids_to_pos_dict,
-                                                                              moves_record, dict_of_movements)
-        end
-
-
       #################################
       ### Add/Remove Movement event ###
       #################################
@@ -741,6 +717,29 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                                                   f_to_p_structs, ids_to_pos_dict,
                                                                                   moves_record, dict_of_movements)
 
+        end
+
+
+
+      ##############################################
+      ### Add/Remove Movement from Outside event ###
+      ##############################################
+
+        mh_res_AddRem_Movements_outside::Vector{Float64} = [-Inf, -Inf, Inf, Inf, Inf]
+        AddRem_Movements_outside_track::Vector{Float64} = [-Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf, -Inf]
+                                  # :arMoves_out_position, :arMoves_out_t, :arMoves_out_is_accepted, :arMoves_out_reason,
+                                                      # :arMoves_out_ΔS, :arMoves_out_ΔE, :arMoves_out_ΔI,
+                                                      # :arMoves_out_S_on_out_before, :arMoves_out_E_on_out_before, :arMoves_out_I_on_out_before,
+                                                      # :arMoves_out_S_on_out_after, :arMoves_out_E_on_out_after, :arMoves_out_I_on_out_after
+
+        if data_aug_infer[9] == true
+
+          DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_AddRem_Movements_outside, AddRem_Movements_outside_track =
+                                                metropolis_hastings_step_aug(propose_AddRem_outside_move_states, generic_posterior_dataaug,
+                                                                              params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur,
+                                                                              llh_array_cur, p_env_llh_array_cur,
+                                                                              f_to_p_structs, ids_to_pos_dict,
+                                                                              moves_record, dict_of_movements)
         end
 
 
@@ -775,12 +774,20 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                                                   f_to_p_structs, ids_to_pos_dict,
                                                                                   moves_record, dict_of_movements)
 
+          end
+
+          if data_aug_infer[11] == true
+
             DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_change_init_S_to_I, change_init_S_to_I_track =
                                                     metropolis_hastings_step_aug(propose_change_init_S_to_I, generic_posterior_dataaug,
                                                                                   params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur,
                                                                                   llh_array_cur, p_env_llh_array_cur,
                                                                                   f_to_p_structs, ids_to_pos_dict,
                                                                                   moves_record, dict_of_movements)
+
+          end
+
+          if data_aug_infer[12] == true
 
             DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_change_init_E_to_S, change_init_E_to_S_track =
                                                     metropolis_hastings_step_aug(propose_change_init_E_to_S, generic_posterior_SE_dataaug,
@@ -789,6 +796,10 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                                                   f_to_p_structs, ids_to_pos_dict,
                                                                                   moves_record, dict_of_movements)
 
+          end
+
+          if data_aug_infer[13] == true
+
             DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_change_init_E_to_I, change_init_E_to_I_track =
                                                     metropolis_hastings_step_aug(propose_change_init_E_to_I, generic_posterior_dataaug,
                                                                                   params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur,
@@ -796,12 +807,20 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                                                                   f_to_p_structs, ids_to_pos_dict,
                                                                                   moves_record, dict_of_movements)
 
+          end
+
+          if data_aug_infer[14] == true
+
             DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_change_init_I_to_S, change_init_I_to_S_track =
                                                     metropolis_hastings_step_aug(propose_change_init_I_to_S, generic_posterior_dataaug,
                                                                                   params_cur, DATA_res_and_track_cur, DATA_pers_and_parish_cur,
                                                                                   llh_array_cur, p_env_llh_array_cur,
                                                                                   f_to_p_structs, ids_to_pos_dict,
                                                                                   moves_record, dict_of_movements)
+
+          end
+
+          if data_aug_infer[15] == true
 
             DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_change_init_I_to_E, change_init_I_to_E_track =
                                                     metropolis_hastings_step_aug(propose_change_init_I_to_E, generic_posterior_dataaug,
@@ -820,7 +839,7 @@ function Blk_Adaptive_RWM_MCMC(;N_its, infer_block, data_aug_infer,
                                               # :arpenv_position, :arpenv_t, :arpenv_is_accepted, :arpenv_reason, :arpenv_Δ,
                                               # :arpenv_p_env_prev_before, :aarpenv_p_env_prev_after
 
-            if data_aug_infer[11] == true
+            if data_aug_infer[16] == true
 
               DATA_res_and_track_cur, DATA_pers_and_parish_cur, llh_array_cur, p_env_llh_array_cur, mh_res_change_init_penv, change_init_penv_track =
                                                   metropolis_hastings_step_aug(propose_change_init_penv, generic_posterior_dataaug,

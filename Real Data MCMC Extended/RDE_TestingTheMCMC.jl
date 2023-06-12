@@ -13,6 +13,9 @@ include("RDE_MCMCfuncs.jl")
 DATA_res_and_track = load("Data/Set Real Subset/DATA_res_and_track.jld2")["array"]
 DATA_pers_and_parish = load("Data/Set Real Subset/DATA_pers_and_parish.jld2")["array"]
 
+DATA_res_and_track = load("Data/Results_19/DATA_res_and_track_post_run.jld2")["array"]
+DATA_pers_and_parish = load("Data/Results_19/DATA_pers_and_parish_post_run.jld2")["array"]
+
 f_to_p_structs = load("Data/Set Real Subset/f_to_p_structs.jld2")["struct"]
 
 record_of_movements = Array(load("Data/Set Real Subset/record_of_movements_oi.jld2")["array"])
@@ -71,12 +74,13 @@ epi_params_dists = [d_β_c, d_γ, d_F, d_ϵ, d_ρ, d_ρ_E]
 
 Random.seed!(7)
 
-r19, or19, ar19, tr19, ut19, icr19, ictr19, DRT_pr_19, DPP_pr_19 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false], data_aug_infer = [true, true, true, true, true, true, true, true, true, true, true],
-                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
-                          moves_record = record_of_movements,
-                          params_init = epi_params_true, tuning = [0.03, 50, 0.04, 4],
-                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
-                          ids_to_pos_dict = ids_to_pos_dict)
+r19, or19, ar19, tr19, ut19, icr19, ictr19, DRT_pr_19, DPP_pr_19 = Blk_Adaptive_RWM_MCMC(;N_its = 1000, infer_block = [false, false],
+                                                                          data_aug_infer = [true, true,   true, true,   true, true,   true,   true, true,    true, true,  true, true,  true, true,   true],
+                                                                          DATA_res_and_track = DATA_res_and_track, DATA_pers_and_parish = DATA_pers_and_parish,
+                                                                          moves_record = record_of_movements,
+                                                                          params_init = epi_params_true, tuning = [0.02, 30, 0.04, 4],
+                                                                          dict_of_movements = dict_of_movements, f_to_p_structs = f_to_p_structs,
+                                                                          ids_to_pos_dict = ids_to_pos_dict)
 
 CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", r19, header = true)
 CSV.write("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]/other_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv", or19, header = true)

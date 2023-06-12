@@ -29,12 +29,10 @@ end
 ### Update the persistents after parameter draw ###
 ###################################################
 
-function update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_epi_params_draw, f_to_p_structs::Vector{Farm_Parish_info}, scope::Scope)
+function update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params_draw, f_to_p_structs::Vector{Farm_Parish_info}, scope::Scope)
 
   DATA_res_and_track_prime = deepcopy(DATA_res_and_track_cur)
   DATA_pers_and_parish_prime = deepcopy(DATA_pers_and_parish_cur)
-
-  epi_params_draw = exp.(log_epi_params_draw)
 
   t_start = scope.t_start # 1
   t_end = scope.t_end # size(DATA_res_and_track_cur[1], 2)
@@ -268,9 +266,9 @@ function update_data_AddRem_SE(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [4,7,10,13,16,19]] .-= Δ
 
   # :cE_postEI, :cE_postDet, :cE_final
-  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [5,8,11]] .+= Δ
+  DATA_res_and_track_prime[1][position, lower_t, [14,17,20]] .+= Δ
   # :cE_init, :cE_Moves, :cE_postM, :cE_postEI, :cE_postDet, :cE_final
-  DATA_res_and_track_prime[1][position, lower_t, [5,8,11,14,17,20]] .+= Δ
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [5,8,11,14,17,20]] .+= Δ
 
   tracker[6:9] = [DATA_res_and_track_cur[2][position, t, 13], DATA_res_and_track_prime[2][position, t, 13],  DATA_res_and_track_cur[1][position, t, 11], DATA_pers_and_parish_cur[1][position, t, 4]]
                #  :arSE_SE_before, :arSE_SE_after, :arSE_cS, :arSE_prob
@@ -343,9 +341,9 @@ function update_data_AddRem_EI(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   DATA_res_and_track_prime[1][position, (lower_t+1):upper_t, [5,8,11,14,17,20]] .-= Δ
 
   # :cI_postEI, :cI_postDet, :cI_final
-  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [6,9,12]] .+= Δ
+  DATA_res_and_track_prime[1][position, lower_t, [15,18,21]] .+= Δ
   # :cI_init, :cI_Moves, :cI_postM, :cI_postEI, :cI_postDet, :cI_final
-  DATA_res_and_track_prime[1][position, lower_t, [6,9,12,15,18,21]] .+= Δ
+  DATA_res_and_track_prime[1][position, (lower_t+1):(upper_t), [6,9,12,15,18,21]] .+= Δ
 
 
   tracker[6:9] = [DATA_res_and_track_cur[2][position, t, 14], DATA_res_and_track_prime[2][position, t, 14],  DATA_res_and_track_cur[1][position, t, 12], DATA_pers_and_parish_cur[1][position, t, 5]]
@@ -624,33 +622,33 @@ function update_data_AddRem_Movement(DATA_res_and_track_cur, DATA_pers_and_paris
       Δ_on_j = differences_oi[j, 1:3]
 
       # :cS_postM, :cS_postEI, :cS_postDet, :cS_final
-      DATA_res_and_track_prime[1][pos, t, [10,13,16,19]] .+= Δ_on_j[1]
+      DATA_res_and_track_prime[1][pos, t, [10,13,16,19]] .-= Δ_on_j[1]
       # :cS_init, :cS_Moves, :cS_postM, :cS_postEI, :cS_postDet, :cS_final
-      DATA_res_and_track_prime[1][pos, (t+1):T, [4,7,10,13,16,19]] .+= Δ_on_j[1]
+      DATA_res_and_track_prime[1][pos, (t+1):T, [4,7,10,13,16,19]] .-= Δ_on_j[1]
 
 
       # :cE_postM, :cE_postEI, :cE_postDet, :cE_final
-      DATA_res_and_track_prime[1][pos, t, [11,14,17,20]] .+= Δ_on_j[2]
+      DATA_res_and_track_prime[1][pos, t, [11,14,17,20]] .-= Δ_on_j[2]
       # :cE_init, :cE_Moves, :cE_postM, :cE_postEI, :cE_postDet, :cE_final
-      DATA_res_and_track_prime[1][pos, (t+1):T, [5,8,11,14,17,20]] .+= Δ_on_j[2]
+      DATA_res_and_track_prime[1][pos, (t+1):T, [5,8,11,14,17,20]] .-= Δ_on_j[2]
 
 
       # :cI_postM, :cI_postEI, :cI_postDet, :cI_final
-      DATA_res_and_track_prime[1][pos, t, [12,15,18,21]] .+= Δ_on_j[3]
+      DATA_res_and_track_prime[1][pos, t, [12,15,18,21]] .-= Δ_on_j[3]
       # :cI_init, :cI_Moves, :cI_postM, :cI_postEI, :cI_postDet, :cI_final
-      DATA_res_and_track_prime[1][pos, (t+1):T, [6,9,12,15,18,21]] .+= Δ_on_j[3]
+      DATA_res_and_track_prime[1][pos, (t+1):T, [6,9,12,15,18,21]] .-= Δ_on_j[3]
 
 
       # :sus_on, :exp_on, :inf_on
-      DATA_res_and_track_prime[2][pos, t, [4,5,6]] .+= Δ_on_j
-
-      ##############
-      ### Update the probabilities
-      ##############
-
-      DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
+      DATA_res_and_track_prime[2][pos, t, [4,5,6]] .-= Δ_on_j
 
   end # end of for each move
+
+  ##############
+  ### Update the probabilities
+  ##############
+
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, f_to_p_structs, scope)
 
 
   ################################
@@ -667,19 +665,19 @@ function update_data_AddRem_Movement(DATA_res_and_track_cur, DATA_pers_and_paris
     if p_pos > 0
 
       # :pcS_final
-      DATA_pers_and_parish_prime[2][p_pos, t, 7] += Δ_pj[1]
+      DATA_pers_and_parish_prime[2][p_pos, t, 7] -= Δ_pj[1]
       # :pcS_init, :pcS_final
-      DATA_pers_and_parish_prime[2][p_pos, (t+1):T, [4,7]] .+= Δ_pj[1]
+      DATA_pers_and_parish_prime[2][p_pos, (t+1):T, [4,7]] .-= Δ_pj[1]
 
       # :pcE_final
-      DATA_pers_and_parish_prime[2][p_pos, t, 8] += Δ_pj[2]
+      DATA_pers_and_parish_prime[2][p_pos, t, 8] -= Δ_pj[2]
       # :pcE_init, :pcE_final
-      DATA_pers_and_parish_prime[2][p_pos, (t+1):T, [5,8]] .+= Δ_pj[2]
+      DATA_pers_and_parish_prime[2][p_pos, (t+1):T, [5,8]] .-= Δ_pj[2]
 
       # :pcI_final
-      DATA_pers_and_parish_prime[2][p_pos, t, 9] += Δ_pj[3]
+      DATA_pers_and_parish_prime[2][p_pos, t, 9] -= Δ_pj[3]
       # :pcI_init, :pcI_final
-      DATA_pers_and_parish_prime[2][p_pos, (t+1):T, [6,9]] .+= Δ_pj[3]
+      DATA_pers_and_parish_prime[2][p_pos, (t+1):T, [6,9]] .-= Δ_pj[3]
 
     end # end if p_pos > 0
 
@@ -848,6 +846,18 @@ function update_data_AddRem_penv(DATA_res_and_track_cur, DATA_pers_and_parish_cu
 
   tracker[7:12] = [DATA_pers_and_parish_cur[2][p_position, t, 10:11] ; DATA_pers_and_parish_prime[2][p_position, t, 10:11] ;  DATA_pers_and_parish_cur[2][p_position, (t+1), [13,6]]]
                 # :arpenv_r_pres_before, :arpenv_n_pres_before, :arpenv_r_pres_after, :arpenv_n_pres_after, :arpenv_p_env_prev, :arpenv_pI
+
+
+  ###############
+  ### Quick check for validity
+  ###############
+
+  posi_check = (DATA_pers_and_parish_prime[2][p_position, t:(t+1), 13:14] .>= 0)
+
+  if sum(sum.(eachrow(posi_check))) != prod(size(posi_check))
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, 0, tracker)
+                              # invalid
+  end
 
   ##############
   ### Update the probabilities

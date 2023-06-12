@@ -558,22 +558,47 @@ end
 
 ### TEST ###
 
-# llh_array = zeros(size(DATA_res_and_track[1], 1), 360, 8)
-#
-# p_env_llh_array = zeros(size(DATA_pers_and_parish[2], 1), 360, 2)
-#
-# global_scope = Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), Vector(1:8))
-#
-# llh_array, p_env_llh_array = update_llh_array_ALL(global_scope,
-#                                                           llh_array, p_env_llh_array,
-#                                                           DATA_res_and_track, DATA_pers_and_parish, record_of_movements,
-#                                                           [0.002, 0.015, 0.004, 0.05, 0.75, 0.2], dict_of_movements, f_to_p_structs)
-#
-# calc_llh_h(global_scope, llh_array)
-#
-# calc_llh_h_and_p(global_scope, llh_array, p_env_llh_array)
-#
-#
+llh_array = zeros(size(DATA_res_and_track[1], 1), 360, 8)
+
+p_env_llh_array = zeros(size(DATA_pers_and_parish[2], 1), 360, 2)
+
+global_scope = Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), Vector(1:8))
+
+llh_array, p_env_llh_array = update_llh_array_ALL(global_scope,
+                                                          llh_array, p_env_llh_array,
+                                                          DATA_res_and_track, DATA_pers_and_parish, record_of_movements,
+                                                          [0.002, 0.015, 0.004, 0.05, 0.75, 0.2], dict_of_movements, f_to_p_structs)
+
+calc_llh_h(global_scope, llh_array)
+
+calc_llh_h_and_p(global_scope, llh_array, p_env_llh_array)
+
+
+
+DATA_res_and_track[1][:, 1, :]
+
+
+DATA_res_and_track[2][:, 1, :]
+
+
+calc_exp_prop(;States_init, p_env_prev, β, F)
+
+
+
+for pos in 1:307
+  for t in 1:360
+    prob = calc_exp_prop(;States_init = DATA_res_and_track[1][pos, t, 4:6],
+                                                     p_env_prev = DATA_pers_and_parish[2][f_to_p_structs[pos].parish_position, t, 13],
+                                                     β = epi_params_true[1],
+                                                     F = epi_params_true[3])
+
+   if prob != DATA_pers_and_parish[1][pos, t, 4]
+     println("calculated probabilty = ", prob)
+     println("existing probabilty   = ", DATA_pers_and_parish[1][pos, t, 4])
+   end
+  end
+end
+
 #
 # calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [1]), llh_array)
 # calc_llh_h(Scope(1, 360, Vector(1:size(DATA_res_and_track[1], 1)), [2]), llh_array)

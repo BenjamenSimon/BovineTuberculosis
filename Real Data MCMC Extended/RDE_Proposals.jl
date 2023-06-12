@@ -446,7 +446,6 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
 
   total_moves = sum(moves_off)
 
-
   ############################################
   ### Extract the movement data for time t ###
   ############################################
@@ -454,6 +453,7 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   move_record_rows = movement_dict[(position, t)]
 
   # This extracts the movement data at time t for the off farm
+  #:t, :off_row_id, :on_row_id, :generating_states(3), :moves_on(3), :n_moves
   moves_data_cur = movement_record[move_record_rows, :]
   moves_data_prime = deepcopy(moves_data_cur)
 
@@ -469,6 +469,15 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
   ##################################
 
   new_move_off = rng_mvhyper(states, total_moves)
+
+  if all(new_move_off .== moves_off) & all(on_cph_row_ids .< 0)
+    change_of_interest = 0
+    scope = Scope(lower_t, upper_t, changed_h_positions, h_llh_indices)
+
+    tracker[5:13] = [moves_off ; new_move_off ; states]
+
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, movement_record, scope, fill(-99, 1, 6), fill(0, 1, 4), fill([-99,-99,-99], 1, 2), tracker, change_of_interest)
+  end
 
   running_move_off = deepcopy(new_move_off)
 
@@ -493,7 +502,6 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
     running_move_off = running_move_off - states_on
 
   end #end of for farms that recieved animals
-
 
   ########################
   ### Update moves off ###
@@ -520,14 +528,24 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
                                 ids_to_pos_dict[on_cph_row_ids[j]] ;
                                 f_to_p_structs[ ids_to_pos_dict[ on_cph_row_ids[j] ] ].parish_position ]
 
-
         changed_h_positions = [changed_h_positions ; differences[j, 5]]
       end
   end
 
+
   changed_h_positions_oi = unique(changed_h_positions[changed_h_positions .> 0])
 
   differences_oi = differences[(differences[:,4] .> 0), :]
+
+  if all(new_move_off .== moves_off) & all(differences_oi[:, 1:3] .== 0)
+    change_of_interest = 0
+    scope = Scope(lower_t, upper_t, changed_h_positions, h_llh_indices)
+
+    tracker[5:13] = [moves_off ; new_move_off ; states]
+
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, movement_record, scope, fill(-99, 1, 6), fill(0, 1, 4), fill([-99,-99,-99], 1, 2), tracker, change_of_interest)
+  end
+
 
   ##############################################
   ### Calculate the parish level differences ###
@@ -543,14 +561,14 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
     parish_differences[idx, 4] = par
 
     for i in 1:size(differences_oi, 1)
-      if differences_oi[i, 5] == par
+      if differences_oi[i, 6] == par
         parish_differences[idx, 1:3] += differences_oi[i, 1:3]
       end
     end
 
     if par == f_to_p_structs[position].parish_position #off_p_id
       Δ_off = DATA_res_and_track_prime[2][position, t, [7,8,9]] - DATA_res_and_track_cur[2][position, t, [7,8,9]]
-      parish_differences[idx, 1:3] -= Δ_off
+      parish_differences[idx, 1:3] += Δ_off
     end
 
   end
@@ -578,7 +596,9 @@ function generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur,
 
   scope = Scope(lower_t, upper_t, changed_h_positions_oi, h_llh_indices)
 
-  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, tracker)
+  change_of_interest = 1
+
+  return(DATA_res_and_track_prime, DATA_pers_and_parish_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, tracker, change_of_interest)
 end
 
 function propose_AddRem_Movements(DATA_res_and_track_cur, DATA_pers_and_parish_cur, epi_params, movement_record, movement_dict, f_to_p_structs::Vector{Farm_Parish_info}, ids_to_pos_dict)
@@ -606,10 +626,16 @@ function propose_AddRem_Movements(DATA_res_and_track_cur, DATA_pers_and_parish_c
 
   ### Generate a new set of movements ###
 
-  DATA_res_and_track_prime, DATA_pers_and_parish_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, AddRem_Movements_track = generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, epi_params, movement_record,
+  DATA_res_and_track_prime, DATA_pers_and_parish_prime, movement_record_prime, scope, differences_oi, parish_differences, log_q_ratio_data, AddRem_Movements_track, coi = generate_new_movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur, position, t, epi_params, movement_record,
                                                                                                                             movement_dict, f_to_p_structs, ids_to_pos_dict, AddRem_Movements_track)
 
   ### Calculate the update ###
+
+  if coi == 0
+    log_q_ratio = -Inf
+    AddRem_Movements_track[4] = 3
+    return(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_q_ratio, scope, movement_record, AddRem_Movements_track)
+  end
 
   DATA_res_and_track_prime, DATA_pers_and_parish_prime, valid = update_data_AddRem_Movement(DATA_res_and_track_cur, DATA_pers_and_parish_cur, scope, position, DATA_res_and_track_prime, DATA_pers_and_parish_prime, epi_params, differences_oi, parish_differences)
 
@@ -711,7 +737,7 @@ function propose_AddRem_penv(DATA_res_and_track_cur, DATA_pers_and_parish_cur, e
   ### Generate the update ###
 
   penv_data = DATA_pers_and_parish_cur[2][p_position, t, [6,10,11,12,13]]
-  # pcI_t,   remaining_pressure_t, new_pressure_t,    scaling, p_env_prev_t
+  # pcI_t,   remaining_pressure_t, new_pressure_t,    scaling,   p_env_prev_t
 
   ϵ = epi_params[4]
 
@@ -888,7 +914,7 @@ function propose_epidemic_params(N_its, results, other_res,
     scope = Scope(1, 360, Vector(1:size(DATA_res_and_track_cur[1], 1)), [3,4])
     # lower_t, upper_t, h_pos_ids, h_llh_indicies
 
-    DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, log_params_draw, f_to_p_structs, scope)
+    DATA_res_and_track_prime, DATA_pers_and_parish_prime = update_pers_EPIDEMIC(DATA_res_and_track_cur, DATA_pers_and_parish_cur, exp.(log_params_draw), f_to_p_structs, scope)
 
   return(log_params_draw, 0.0, mixture, λ, DATA_res_and_track_prime, DATA_pers_and_parish_prime, scope)
 end

@@ -1,0 +1,293 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+title: "SEIR Chain Binomial Epidemic Inference"
+author: "Benjamen Simon"
+date: "September 2022"
+knit: (function(inputFile, encoding) { 
+          rmarkdown::render(
+            inputFile,
+            encoding = encoding, 
+            output_dir = "../Reports") 
+            })
+header-includes:
+  - \usepackage{amsmath}
+  - \usepackage{enumerate}
+  - \usepackage{bm}
+  - \usepackage[T1]{fontenc}
+---
+
+```{r setup, include=FALSE}
+
+# Rmarkdown settings
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE, eval= TRUE, message = FALSE, cache.path = "Caches/", fig.path = "Figures/cbHomo/")
+
+# Default to non-scientific notation
+options(scipen=999)
+
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+
+```
+
+```{r Packages}
+
+  ## Data manipulation
+  library(tidyverse)
+
+  ## Plotting
+  library(ggplot2)
+  library(ggcorrplot)
+  source("RDE_VisualisationFunctions.R")
+
+  ## MCMC Diagnostics
+  library(coda)
+
+  ## Epidemics
+  library(EpidemicR) # For simulating and making inference on GSE epidemics
+
+  ## Write up
+  library(xtable)
+
+```
+
+
+
+# Inference: All with strong priors
+
+```{r}
+# True params
+
+params <- c(100, 100, 100, 100, 100, 100, 100)
+
+```
+
+
+```{r Load the results _10}
+
+# Load in the inference
+r19 = read.csv("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]_Real3/res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+or19 = read.csv("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]_Real3/other_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+ar19 = read.csv("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]_Real3/aug_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+tr19 = read.csv("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]_Real3/tuning_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+ut19 = read.csv("Inference/Results_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves]_Real3/update_tracker_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+
+
+```
+
+```{r Summarise the results _10}
+
+## Summarise the results
+
+summary(r19[ -c(1:100000), ])
+
+summary(or19[ , ])
+
+summary(ar19[ , ])
+
+effectiveSize(r19[ -c(1:100000), ])
+
+```
+
+```{r}
+
+summary(ar19[ , c(5, 10, 15,20,25,30,35,40)] %>% mutate_if(is.double,as.factor))
+
+894701/1000000 * 100
+770817 /1000000 * 100     
+4288   /1000000 * 100     
+11240    /1000000 * 100     
+1235      /1000000 * 100   
+15488      /1000000 * 100     
+436454          /1000000 * 100
+31266 /1000000 * 100
+
+```
+
+
+```{r Plot the results _10}
+
+## Plot the results
+
+trace_plot_inf = gg_trace_plot_inf(r19, or19, params, 100000, c(0.0016, 0.0043), c(0.019, 0.027), c(0.0011, 0.0019), c(0.05, 0.056))
+
+## Save the results
+
+ggsave(filename = "Visualisation/trace_inf_all.png", plot = trace_plot_inf, width = 9, height = 12)
+
+```
+
+
+```{r Plot the results _10}
+
+## Plot the results
+
+trace_plot_det = gg_trace_plot_det(r19, or19, params, 100000, c(0.85, 1), c(0.97, 1))
+
+## Save the results
+
+ggsave(filename = "Visualisation/trace_det_all.png", plot = trace_plot_det, width = 9, height = 6)
+
+```
+
+```{r Plot the results _10}
+
+## Plot the results
+
+hist_plot_inf = gg_hist_plot_inf(r19, or19, params, 100000, c(0.0016, 0.0043), c(0.019, 0.027), c(0.0011, 0.0019), c(0.05, 0.056))
+
+## Save the results
+
+ggsave(filename = "Visualisation/hist_inf_all.png", plot = hist_plot_inf, width = 9, height = 12)
+
+```
+
+
+```{r Plot the results _10}
+
+## Plot the results
+
+hist_plot_det = gg_hist_plot_det(r19, or19, params, 100000, c(0.85, 1), c(0.97, 1))
+
+## Save the results
+
+ggsave(filename = "Visualisation/hist_det_all.png", plot = hist_plot_det, width = 9, height = 6)
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+contour_plot_inf = gg_contour_plot_inf(r19, or19, params, 100000, c(0.0016, 0.0043), c(0.019, 0.027), c(0.0011, 0.0019), c(0.05, 0.056))
+
+ggsave(filename = "Visualisation/contour_inf_all.png", plot = contour_plot_inf, width = 8, height = 10)
+
+```
+
+
+
+
+```{r}
+
+contour_plot_det = gg_contour_plot_det(r19, or19, params, 100000, c(0.9, 1), c(0.99, 1))
+
+ggsave(filename = "Visualisation/contour_det_all.png", plot = contour_plot_det, width = 8, height = 10)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Inference: JUST INFECTION PARAMS
+
+```{r}
+# True params
+
+params <- c(100, 100, 100, 100, 100, 100, 100)
+
+```
+
+
+```{r Load the results _10}
+
+# Load in the inference
+r19 = read.csv("Inference/Results_19_rhos_fixed_4/res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+or19 = read.csv("Inference/Results_19_rhos_fixed_4/other_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+ar19 = read.csv("Inference/Results_19_rhos_fixed_4/aug_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+tr19 = read.csv("Inference/Results_19_rhos_fixed_4/tuning_res_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+ut19 = read.csv("Inference/Results_19_rhos_fixed_4/update_tracker_19_[Inf][Det][mSE][mEI][arSE][arEI][arDet][arDeath][arPEnv][arMoves].csv")
+
+
+```
+
+```{r Summarise the results _10}
+
+## Summarise the results
+
+summary(r19[ , ])
+
+summary(or19[ , ])
+
+summary(ar19[ , ])
+
+effectiveSize(r19[ , ])
+
+```
+
+```{r}
+
+summary(ar19[ , c(5, 10, 15,20,25,30,35,40)] %>% mutate_if(is.double,as.factor))
+
+```
+
+
+```{r Plot the results _10}
+
+## Plot the results
+
+trace_plot_inf_fixrho = gg_trace_plot_inf(r19, or19, params, 100000, c(0.0038, 0.0065), c(0.0045, 0.0062), c(0.0009, 0.0014), c(0.049, 0.056))
+
+## Save the results
+
+ggsave(filename = "Visualisation/trace_inf_fixrho.png", plot = trace_plot_inf_fixrho, width = 9, height = 12)
+
+```
+
+
+```{r Plot the results _10}
+
+## Plot the results
+
+hist_plot_inf_fixrho = gg_hist_plot_inf(r19, or19, params, 100000, c(0.0038, 0.0065), c(0.0045, 0.0062), c(0.0009, 0.0014), c(0.049, 0.056))
+
+## Save the results
+
+ggsave(filename = "Visualisation/hist_inf_fixrho.png", plot = hist_plot_inf_fixrho, width = 9, height = 12)
+
+```
+
+
+
+
+```{r}
+
+contour_plot_inf_fixrho = gg_contour_plot_inf(r19, or19, params, 100000, c(0.0038, 0.0065), c(0.0045, 0.0062), c(0.0009, 0.0014), c(0.049, 0.056))
+
+ggsave(filename = "Visualisation/contour_fixrho.png", plot = contour_plot_inf_fixrho, width = 8, height = 10)
+
+```
+
+
+
+
+
+
+

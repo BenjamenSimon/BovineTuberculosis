@@ -325,6 +325,172 @@ gg_hist_plot_det <- function(results, other_results, params_true, burn_in, r_x_l
 
 
 
+gg_hist_plot_inf_w_prior <- function(results, other_results, params_true, burn_in, b_c_x_limits, g_x_limits, F_x_limits, e_x_limits, priorhp){
+  
+  # create data frame of results
+  
+  df = data.frame(samples = other_results[, 11], b_c = results[, 1], g = results[, 2], F_ = results[, 3], e = results[, 4])
+  
+  # Calc number of samples
+  
+  num_samples = nrow(df)
+  
+  # Highlight burn in
+  
+  df_burn_in <- df[-(1:burn_in), ]
+  
+  
+  #Create beta_c plot
+  
+  beta_c_plot = df_burn_in %>% 
+    ggplot(aes(x = b_c, y = ..density..)) +
+    geom_histogram(fill = "#f5c04a", colour = "grey15", alpha = 0.85) +
+    geom_vline(aes(xintercept = params_true[1]), size = 1.1, linetype = 2, 
+               colour = '#4f5157') +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 5), 
+                       limits = c(b_c_x_limits[1], b_c_x_limits[2])) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 7)
+    ) +
+    labs(
+      x = expression("Samples of parameter" ~ beta[c]), ##### HERE IS CHANGE SYMBOL
+      y = "Density") +
+    stat_function(aes(y = NULL), 
+                  fun=dgamma, 
+                  args=list(shape=priorhp[1], rate=priorhp[2]),
+                  colour = "lightblue", geom="area", fill="lightblue", alpha=0.2)
+  
+  
+  #Create delta plot
+  
+  g_plot = df_burn_in %>% 
+    ggplot(aes(x = g, y = ..density..)) +
+    geom_histogram(fill = "#f5c04a", colour = "grey15", alpha = 0.85) +
+    geom_vline(aes(xintercept = params_true[3]), size = 1.1, linetype = 2, 
+               colour = '#4f5157') +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 5), 
+                       limits = c(g_x_limits[1], g_x_limits[2])) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 7)
+    ) +
+    labs(
+      x = expression("Samples of parameter" ~ delta), ##### HERE IS CHANGE SYMBOL
+      y = "Density") +
+    stat_function(aes(y = NULL), 
+                  fun=dgamma, 
+                  args=list(shape=priorhp[3], rate=priorhp[4]),
+                  colour = "lightblue", geom="area", fill="lightblue", alpha=0.2)
+  
+  
+  #Create F plot
+  
+  F_plot = df_burn_in %>% 
+    ggplot(aes(x = F_, y = ..density..)) +
+    geom_histogram(fill = "#f5c04a", colour = "grey15", alpha = 0.85) +
+    geom_vline(aes(xintercept = params_true[4]), size = 1.1, linetype = 2, 
+               colour = '#4f5157') +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 5), 
+                       limits = c(F_x_limits[1], F_x_limits[2])) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 7)
+    ) +
+    labs(
+      x = expression("Samples of parameter" ~ F), ##### HERE IS CHANGE SYMBOL
+      y = "Density") +
+    stat_function(aes(y = NULL), 
+                  fun=dgamma, 
+                  args=list(shape=priorhp[5], rate=priorhp[6]),
+                  colour = "lightblue", geom="area", fill="lightblue", alpha=0.2)
+  
+  
+  #Create e plot
+  
+  e_plot = df_burn_in %>% 
+    ggplot(aes(x = e, y = ..density..)) +
+    geom_histogram(fill = "#f5c04a", colour = "grey15", alpha = 0.85) +
+    geom_vline(aes(xintercept = params_true[5]), size = 1.1, linetype = 2, 
+               colour = '#4f5157') +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 5), 
+                       limits = c(e_x_limits[1], e_x_limits[2])) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 7)
+    ) +
+    labs(
+      x = expression("Samples of parameter" ~ epsilon), ##### HERE IS CHANGE SYMBOL
+      y = "Density") +
+    stat_function(aes(y = NULL), 
+                  fun=dgamma, 
+                  args=list(shape=priorhp[7], rate=priorhp[8]),
+                  colour = "lightblue", geom="area", fill="lightblue", alpha=0.2)
+  
+  
+  hist_plots = grid.arrange(beta_c_plot, g_plot, F_plot, e_plot, nrow = 2)
+  
+  return(hist_plots)
+}
+
+
+
+gg_hist_plot_det_w_prior <- function(results, other_results, params_true, burn_in, r_x_limits, re_x_limits, priorhp){
+  
+  # create data frame of results
+  
+  df = data.frame(samples = other_results[, 11], r = results[, 5], re = results[, 6])
+  
+  # Calc number of samples
+  
+  num_samples = nrow(df)
+  
+  # Highlight burn in
+  
+  df_burn_in <- df[-(1:burn_in), ]
+  
+  
+  #Create beta_c plot
+  
+  r_plot = df_burn_in %>% 
+    ggplot(aes(x = r, y = ..density..)) +
+    geom_histogram(fill = "#f5c04a", colour = "grey15", alpha = 0.85) +
+    geom_vline(aes(xintercept = params_true[6]), size = 1.1, linetype = 2, 
+               colour = '#4f5157') +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 5), 
+                       limits = c(r_x_limits[1], r_x_limits[2])) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 7)
+    ) +
+    labs(
+      x = expression("Samples of parameter" ~ rho), ##### HERE IS CHANGE SYMBOL
+      y = "Density")  +
+    stat_function(aes(y = NULL), 
+                  fun=dbeta, 
+                  args=list(shape1=priorhp[1], shape2=priorhp[2]),
+                  colour = "lightblue", geom="area", fill="lightblue", alpha=0.2)
+  
+  
+  #Create beta_b plot
+  
+  re_plot = df_burn_in %>% 
+    ggplot(aes(x = re, y = ..density..)) +
+    geom_histogram(fill = "#f5c04a", colour = "grey15", alpha = 0.85) +
+    geom_vline(aes(xintercept = params_true[7]), size = 1.1, linetype = 2, 
+               colour = '#4f5157') +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 5), 
+                       limits = c(re_x_limits[1], re_x_limits[2])) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 7)
+    ) +
+    labs(
+      x = expression("Samples of parameter" ~ rho[E]), ##### HERE IS CHANGE SYMBOL
+      y = "Density")  +
+    stat_function(aes(y = NULL), 
+                  fun=dbeta, 
+                  args=list(shape1=priorhp[3], shape2=priorhp[4]),
+                  colour = "lightblue", geom="area", fill="lightblue", alpha=0.2)
+  
+  
+  
+  hist_plots = grid.arrange(r_plot, re_plot, nrow = 1)
+  
+  return(hist_plots)
+}
+
+
+
+
 
 #~~~~~~~~~~#
 # CONTOURS #

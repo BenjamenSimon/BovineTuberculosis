@@ -88,6 +88,19 @@ summary(ar19[ , ])
 
 effectiveSize(r19[ -c(1:100000), ])
 
+
+apply(r19[ -c(1:100000), ], 2, function(column) {
+  quantiles <- quantile(column, c(0.025, 0.975))
+  rounded_quantiles <- signif(quantiles, digits = 3)  # Round to 3 significant figures
+  return(rounded_quantiles)
+})
+
+apply(r19[-c(1:100000), ], 2, function(column) {
+  std_dev <- sd(column)  # Calculate standard deviation
+  rounded_std_dev <- signif(std_dev, digits = 3)  # Round to 3 significant figures
+  return(rounded_std_dev)
+})
+
 ```
 
 ```{r}
@@ -148,6 +161,20 @@ ggsave(filename = "Visualisation/hist_inf_all.png", plot = hist_plot_inf, width 
 
 ## Plot the results
 
+hist_plot_inf_w_prior = gg_hist_plot_inf_w_prior(r19, or19, params, 100000, c(0.0016, 0.0043), c(0.019, 0.027), c(0.0011, 0.0019), c(0.05, 0.056), c(2, 0.001, 3, 0.005, 2, 0.002, 1, 0.05))
+
+## Save the results
+
+ggsave(filename = "Visualisation/hist_inf_all_w_prior.png", plot = hist_plot_inf_w_prior, width = 9, height = 12)
+
+```
+
+
+
+```{r Plot the results _10}
+
+## Plot the results
+
 hist_plot_det = gg_hist_plot_det(r19, or19, params, 100000, c(0.85, 1), c(0.97, 1))
 
 ## Save the results
@@ -160,7 +187,17 @@ ggsave(filename = "Visualisation/hist_det_all.png", plot = hist_plot_det, width 
 
 
 
+```{r Plot the results _10}
 
+## Plot the results
+
+hist_plot_det_w_prior = gg_hist_plot_det_w_prior(r19, or19, params, 100000, c(0.85, 1), c(0.97, 1), c(1.5, 0.5, 0.4, 1.6))
+
+## Save the results
+
+ggsave(filename = "Visualisation/hist_det_all_w_prior.png", plot = hist_plot_det_w_prior, width = 9, height = 6)
+
+```
 
 
 
@@ -232,13 +269,28 @@ ut19 = read.csv("Inference/Results_19_rhos_fixed_4/update_tracker_19_[Inf][Det][
 
 ## Summarise the results
 
-summary(r19[ , ])
+summary(r19[ -c(1:100000), ])
 
 summary(or19[ , ])
 
 summary(ar19[ , ])
 
 effectiveSize(r19[ , ])
+
+effectiveSize(r19[ -c(1:100000), ])
+
+
+apply(r19[ -c(1:100000), ], 2, function(column) {
+  quantiles <- quantile(column, c(0.025, 0.975))
+  rounded_quantiles <- signif(quantiles, digits = 3)  # Round to 3 significant figures
+  return(rounded_quantiles)
+})
+
+apply(r19[-c(1:100000), ], 2, function(column) {
+  std_dev <- sd(column)  # Calculate standard deviation
+  rounded_std_dev <- signif(std_dev, digits = 3)  # Round to 3 significant figures
+  return(rounded_std_dev)
+})
 
 ```
 
@@ -275,6 +327,18 @@ ggsave(filename = "Visualisation/hist_inf_fixrho.png", plot = hist_plot_inf_fixr
 ```
 
 
+
+```{r Plot the results _10}
+
+## Plot the results
+
+hist_plot_inf_fixrho_w_prior = gg_hist_plot_inf_w_prior(r19, or19, params, 100000, c(0.0038, 0.0065), c(0.0045, 0.0062), c(0.0009, 0.0014), c(0.049, 0.056), c(2, 0.001, 3, 0.005, 2, 0.002, 1, 0.05))
+
+## Save the results
+
+ggsave(filename = "Visualisation/hist_inf_fixrho_w_prior.png", plot = hist_plot_inf_fixrho_w_prior, width = 9, height = 12)
+
+```
 
 
 ```{r}
